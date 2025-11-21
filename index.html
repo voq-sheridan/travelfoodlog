@@ -1,1 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add a New Place</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <h1>Add a new place</h1>
+      <p>Save a place you visited so you can remember how it felt later.</p>
+    </header>
+
+    <section class="card">
+      <form id="placeForm" action="/places" method="post" enctype="multipart/form-data" novalidate>
+        <!-- A. Basic info -->
+        <fieldset>
+          <legend>Basic info</legend>
+
+          <div class="field">
+            <label for="placeName">Place name <span class="required">*</span></label>
+            <input id="placeName" name="placeName" type="text" required placeholder="Blue Whale Café">
+            <p class="field-hint">Give the place a name that future you will recognize.</p>
+          </div>
+
+          <div class="field">
+            <label>Place type <span class="required">*</span></label>
+            <div class="option-group option-group-pill" role="radiogroup" aria-label="Place type">
+              <label class="pill">
+                <input type="radio" name="placeType" value="cafe" required> Cafe
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="restaurant"> Restaurant
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="viewpoint"> Viewpoint
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="museum"> Museum
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="park"> Park
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="shopping"> Shopping
+              </label>
+              <label class="pill">
+                <input type="radio" name="placeType" value="other"> Other
+              </label>
+            </div>
+          </div>
+
+          <div class="inline-fields">
+            <div class="field">
+              <label for="city">City <span class="required">*</span></label>
+              <input id="city" name="city" type="text" required placeholder="Kyoto">
+            </div>
+            <div class="field">
+              <label for="country">Country <span class="required">*</span></label>
+              <input id="country" name="country" type="text" required placeholder="Japan">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="dateVisited">Date visited <span class="required">*</span></label>
+            <input id="dateVisited" name="dateVisited" type="date" required>
+          </div>
+        </fieldset>
+
+        <!-- B. Experience and mood -->
+        <fieldset>
+          <legend>Experience and mood</legend>
+
+          <div class="field">
+            <label>Overall mood <span class="required">*</span></label>
+            <div class="option-group option-group-pill" role="radiogroup" aria-label="Overall mood">
+              <label class="pill">
+                <input type="radio" name="mood" value="calm" required> Calm
+              </label>
+              <label class="pill">
+                <input type="radio" name="mood" value="excited"> Excited
+              </label>
+              <label class="pill">
+                <input type="radio" name="mood" value="inspired"> Inspired
+              </label>
+              <label class="pill">
+                <input type="radio" name="mood" value="cozy"> Cozy
+              </label>
+              <label class="pill">
+                <input type="radio" name="mood" value="social"> Social
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Rating <span class="required">*</span></label>
+            <div class="option-group" role="radiogroup" aria-label="Rating from 1 to 5">
+              <label><input type="radio" name="rating" value="1" required> 1</label>
+              <label><input type="radio" name="rating" value="2"> 2</label>
+              <label><input type="radio" name="rating" value="3"> 3</label>
+              <label><input type="radio" name="rating" value="4"> 4</label>
+              <label><input type="radio" name="rating" value="5"> 5</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Visited with</label>
+            <div class="option-group">
+              <label><input type="checkbox" name="visitedWith" value="solo"> Solo</label>
+              <label><input type="checkbox" name="visitedWith" value="partner"> Partner</label>
+              <label><input type="checkbox" name="visitedWith" value="friends"> Friends</label>
+              <label><input type="checkbox" name="visitedWith" value="family"> Family</label>
+              <label><input type="checkbox" name="visitedWith" value="coworkers"> Coworkers</label>
+              <label><input type="checkbox" name="visitedWith" value="tourGroup"> Tour group</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Highlights</label>
+            <div class="option-group option-group-pill">
+              <label class="pill"><input type="checkbox" name="tags" value="greatCoffee"> Great coffee</label>
+              <label class="pill"><input type="checkbox" name="tags" value="scenicView"> Scenic view</label>
+              <label class="pill"><input type="checkbox" name="tags" value="quiet"> Quiet place</label>
+              <label class="pill"><input type="checkbox" name="tags" value="goodForWork"> Good for work</label>
+              <label class="pill"><input type="checkbox" name="tags" value="localVibes"> Local vibes</label>
+              <label class="pill"><input type="checkbox" name="tags" value="nightlife"> Nightlife</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Would you return? <span class="required">*</span></label>
+            <div class="option-group" role="radiogroup" aria-label="Would you return">
+              <label><input type="radio" name="wouldReturn" value="yes" required> Yes</label>
+              <label><input type="radio" name="wouldReturn" value="maybe"> Maybe</label>
+              <label><input type="radio" name="wouldReturn" value="no"> No</label>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- C. Practical details -->
+        <fieldset>
+          <legend>Practical details</legend>
+
+          <div class="field">
+            <label>Cost level</label>
+            <div class="option-group" role="radiogroup" aria-label="Cost level">
+              <label><input type="radio" name="costLevel" value="1"> $</label>
+              <label><input type="radio" name="costLevel" value="2"> $$</label>
+              <label><input type="radio" name="costLevel" value="3"> $$$</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="stayDuration">Stay duration</label>
+            <select id="stayDuration" name="stayDuration">
+              <option value="">Select one</option>
+              <option value="1-2h">1 to 2 hours</option>
+              <option value="halfDay">Half day</option>
+              <option value="fullDay">Full day</option>
+              <option value="overnight">Overnight</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <!-- D. Notes -->
+        <fieldset>
+          <legend>Notes</legend>
+
+          <div class="field">
+            <label for="description">What made this place memorable?</label>
+            <textarea id="description" name="description" placeholder="The barista remembered my name and the sunset was beautiful over the river."></textarea>
+            <div class="char-counter" aria-live="polite">
+              <span id="descriptionCount">0</span>/500
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="personalTip">Tips for future you or friends</label>
+            <textarea id="personalTip" name="personalTip" placeholder="Go around 4 pm to avoid crowds and grab the window seat on the left."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="photo">Add a photo (optional)</label>
+            <input id="photo" name="photo" type="file" accept="image/*">
+          </div>
+        </fieldset>
+
+        <div class="form-footer">
+          <button type="submit" class="primary-btn">Save place</button>
+          <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
 

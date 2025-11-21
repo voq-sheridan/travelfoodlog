@@ -1,1 +1,246 @@
+/* Layout and base styles */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f5fb;
+  color: #222;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.6rem;
+}
+
+.page-header p {
+  margin: 0;
+  color: #555;
+}
+
+/* Card */
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+/* Form structure */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+fieldset {
+  border: 1px solid #e0e4f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Fields */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
+}
+
+label {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.required {
+  color: #e11d48;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5f0;
+  font: inherit;
+  background: #f9fafb;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* Inline layout */
+
+.inline-fields {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.inline-fields .field {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Option groups */
+
+.option-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.88rem;
+}
+
+.option-group label {
+  font-weight: 400;
+}
+
+.option-group input[type="radio"],
+.option-group input[type="checkbox"] {
+  margin-right: 0.25rem;
+}
+
+/* Pill-style buttons */
+
+.option-group-pill .pill {
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #cbd5f0;
+  background: #f9fafb;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.option-group-pill .pill input {
+  margin: 0;
+}
+
+.option-group-pill .pill:hover {
+  background: #eef2ff;
+}
+
+.option-group-pill .pill:has(input:checked) {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+/* Hints and helpers */
+
+.field-hint {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.char-counter {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* Buttons and footer */
+
+.form-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.primary-btn {
+  align-self: flex-start;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: #4f46e5;
+  color: #fff;
+  box-shadow: 0 10px 18px rgba(79, 70, 229, 0.3);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.primary-btn:hover {
+  background: #4338ca;
+  box-shadow: 0 12px 22px rgba(67, 56, 202, 0.35);
+  transform: translateY(-1px);
+}
+
+.primary-btn:active {
+  background: #3730a3;
+  box-shadow: 0 6px 14px rgba(55, 48, 163, 0.4);
+  transform: translateY(0);
+}
+
+/* Status message */
+
+.form-status {
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+.form-status.success {
+  color: #15803d;
+}
+
+.form-status.error {
+  color: #b91c1c;
+}
+
+/* Responsive tweaks */
+
+@media (max-width: 600px) {
+  .card {
+    padding: 1.25rem 1rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+}
 
