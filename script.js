@@ -1,69 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("dishForm");
-  const statusEl = document.getElementById("formStatus");
+  const form = document.querySelector("#dishForm");
+  const statusEl = document.querySelector("#formStatus");
 
-  // Notes character counter
-  const notes = document.getElementById("notes");
-  const notesCount = document.getElementById("notesCount");
+  if (!form || !statusEl) return;
 
-  if (notes && notesCount) {
-    const updateCount = () => {
-      const length = notes.value.length;
-      notesCount.textContent = length;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault(); // stop page refresh
+
+    // 1) Validate required fields
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      statusEl.textContent = "Please fill in the required fields.";
+      statusEl.classList.remove("success");
+      statusEl.classList.add("error");
+      return;
+    }
+
+    // 2) Build the data object exactly matching your form
+    const placeData = {
+      dishName: document.querySelector("#dishName")?.value || "",
+
+      locationCity: document.querySelector("#locationCity")?.value || "",
+      locationCountry: document.querySelector("#locationCountry")?.value || "",
+
+      placeType: document.querySelector("input[name='placeType']:checked")?.value || "",
+
+      rating: Number(document.querySelector("input[name='rating']:checked")?.value) || null,
+
+      priceLevel: document.querySelector("input[name='priceLevel']:checked")?.value || "",
+
+      KeywordTags: Array.from(document.querySelectorAll("input[name='KeywordTags']:checked"))
+        .map((c) => c.value),
+
+      visitDate: document.querySelector("#visitDate")?.value || "",
+
+      notes: document.querySelector("#notes")?.value || "",
+
+      photoUrl: null // optional — we will handle file upload later
     };
 
-    notes.addEventListener("input", updateCount);
-    updateCount();
-  }
+    console.log("Sending to backend:", placeData);
 
-  // Photo preview
-  const photoInput = document.getElementById("photoUrl");
-  const photoPreviewWrapper = document.getElementById("photoPreviewWrapper");
-  const photoPreview = document.getElementById("photoPreview");
+    // 3) Send to backend
+    try {
+      const response = await fetch("http://localhost:3000/places", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(placeData),
+      });
 
-  if (photoInput && photoPreview && photoPreviewWrapper) {
-    photoInput.addEventListener("change", () => {
-      const file = photoInput.files && photoInput.files[0];
-
-      if (!file) {
-        photoPreviewWrapper.hidden = true;
-        photoPreview.src = "";
-        return;
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to save");
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        photoPreview.src = e.target.result;
-        photoPreviewWrapper.hidden = false;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+      const saved = await response.json();
+      console.log("Saved in MongoDB:", saved);
 
-  // Handle submit (static demo mode)
-  if (form && statusEl) {
-    form.addEventListener("submit", (event) => {
-      event.preventDefault(); // keep it static for now
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        statusEl.textContent = "Please fill in the required fields (dish, location, place type, rating, date).";
-        statusEl.classList.remove("success");
-        statusEl.classList.add("error");
-        return;
-      }
-
-      statusEl.textContent = "Dish saved (demo only, not yet connected to the database).";
+      // 4) Show success
+      statusEl.textContent = "Dish saved successfully! 🎉";
       statusEl.classList.remove("error");
       statusEl.classList.add("success");
 
-      // Optional: reset after success
-      // form.reset();
-      // if (notesCount) notesCount.textContent = "0";
-      // if (photoPreviewWrapper) {
-      //   photoPreviewWrapper.hidden = true;
-      //   photoPreview.src = "";
-      // }
-    });
-  }
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Error: " + err.message;
+      statusEl.classList.remove("success");
+      statusEl.classList.add("error");
+    }
+  });
 });
