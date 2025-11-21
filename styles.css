@@ -1,5 +1,4 @@
-/* Layout and base styles */
-
+/* Reset-ish */
 *,
 *::before,
 *::after {
@@ -13,6 +12,8 @@ body {
   background: #f4f5fb;
   color: #222;
 }
+
+/* Layout */
 
 .page {
   max-width: 760px;
@@ -126,7 +127,7 @@ textarea {
 .option-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  gap: 0.5rem 0.75rem;
   font-size: 0.88rem;
 }
 
@@ -139,7 +140,7 @@ textarea {
   margin-right: 0.25rem;
 }
 
-/* Pill-style buttons */
+/* Pill-style buttons (button groups / chips / segments) */
 
 .option-group-pill .pill {
   border-radius: 999px;
@@ -150,7 +151,7 @@ textarea {
   align-items: center;
   gap: 0.3rem;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
 }
 
 .option-group-pill .pill input {
@@ -180,6 +181,51 @@ textarea {
   font-size: 0.8rem;
   color: #6b7280;
   text-align: right;
+}
+
+/* Star rating */
+
+.star-rating {
+  display: inline-flex;
+  flex-direction: row-reverse; /* needed for the CSS trick */
+  gap: 0.15rem;
+  font-size: 1.5rem;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  cursor: pointer;
+  color: #e0e4f0;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+/* When a radio is checked, colour that star and all previous ones */
+.star-rating input:checked ~ label {
+  color: #facc15;
+}
+
+/* Hover states */
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #fde68a;
+  transform: translateY(-1px);
+}
+
+/* Photo preview */
+
+.photo-preview-wrapper {
+  margin-top: 0.5rem;
+}
+
+.photo-preview-wrapper img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
 }
 
 /* Buttons and footer */
@@ -243,4 +289,3 @@ textarea {
     font-size: 1.4rem;
   }
 }
-

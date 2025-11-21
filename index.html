@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add a New Place</title>
+  <title>Add a New Dish Spot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
@@ -10,186 +10,159 @@
 <body>
   <main class="page">
     <header class="page-header">
-      <h1>Add a new place</h1>
-      <p>Save a place you visited so you can remember how it felt later.</p>
+      <h1>Add a new food memory</h1>
+      <p>Log a dish you loved (or hated) so future you remembers where to go next time.</p>
     </header>
 
     <section class="card">
-      <form id="placeForm" action="/places" method="post" enctype="multipart/form-data" novalidate>
-        <!-- A. Basic info -->
+      <form id="dishForm" action="/places" method="post" enctype="multipart/form-data" novalidate>
+        <!-- A. Dish + location -->
         <fieldset>
-          <legend>Basic info</legend>
+          <legend>Dish & location</legend>
 
           <div class="field">
-            <label for="placeName">Place name <span class="required">*</span></label>
-            <input id="placeName" name="placeName" type="text" required placeholder="Blue Whale Café">
-            <p class="field-hint">Give the place a name that future you will recognize.</p>
+            <label for="dishName">Dish name <span class="required">*</span></label>
+            <input id="dishName" name="dishName" type="text" required placeholder="Spicy miso ramen">
+            <p class="field-hint">What was the main dish or drink you remember?</p>
+          </div>
+
+          <div class="inline-fields">
+            <div class="field">
+              <label for="locationCity">City <span class="required">*</span></label>
+              <input id="locationCity" name="locationCity" type="text" required placeholder="Tokyo">
+            </div>
+            <div class="field">
+              <label for="locationCountry">Country <span class="required">*</span></label>
+              <select id="locationCountry" name="locationCountry" required>
+                <option value="">Select a country</option>
+                <option value="Japan">Japan</option>
+                <option value="Canada">Canada</option>
+                <option value="Thailand">Thailand</option>
+                <option value="Vietnam">Vietnam</option>
+                <option value="France">France</option>
+                <option value="Italy">Italy</option>
+                <option value="USA">United States</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
 
           <div class="field">
             <label>Place type <span class="required">*</span></label>
             <div class="option-group option-group-pill" role="radiogroup" aria-label="Place type">
               <label class="pill">
-                <input type="radio" name="placeType" value="cafe" required> Cafe
+                <input type="radio" name="placeType" value="Street Food" required> Street Food
               </label>
               <label class="pill">
-                <input type="radio" name="placeType" value="restaurant"> Restaurant
+                <input type="radio" name="placeType" value="Cafe"> Cafe
               </label>
               <label class="pill">
-                <input type="radio" name="placeType" value="viewpoint"> Viewpoint
-              </label>
-              <label class="pill">
-                <input type="radio" name="placeType" value="museum"> Museum
-              </label>
-              <label class="pill">
-                <input type="radio" name="placeType" value="park"> Park
-              </label>
-              <label class="pill">
-                <input type="radio" name="placeType" value="shopping"> Shopping
-              </label>
-              <label class="pill">
-                <input type="radio" name="placeType" value="other"> Other
+                <input type="radio" name="placeType" value="Restaurant"> Restaurant
               </label>
             </div>
-          </div>
-
-          <div class="inline-fields">
-            <div class="field">
-              <label for="city">City <span class="required">*</span></label>
-              <input id="city" name="city" type="text" required placeholder="Kyoto">
-            </div>
-            <div class="field">
-              <label for="country">Country <span class="required">*</span></label>
-              <input id="country" name="country" type="text" required placeholder="Japan">
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="dateVisited">Date visited <span class="required">*</span></label>
-            <input id="dateVisited" name="dateVisited" type="date" required>
           </div>
         </fieldset>
 
-        <!-- B. Experience and mood -->
+        <!-- B. Rating & price -->
         <fieldset>
-          <legend>Experience and mood</legend>
-
-          <div class="field">
-            <label>Overall mood <span class="required">*</span></label>
-            <div class="option-group option-group-pill" role="radiogroup" aria-label="Overall mood">
-              <label class="pill">
-                <input type="radio" name="mood" value="calm" required> Calm
-              </label>
-              <label class="pill">
-                <input type="radio" name="mood" value="excited"> Excited
-              </label>
-              <label class="pill">
-                <input type="radio" name="mood" value="inspired"> Inspired
-              </label>
-              <label class="pill">
-                <input type="radio" name="mood" value="cozy"> Cozy
-              </label>
-              <label class="pill">
-                <input type="radio" name="mood" value="social"> Social
-              </label>
-            </div>
-          </div>
+          <legend>How did it feel?</legend>
 
           <div class="field">
             <label>Rating <span class="required">*</span></label>
-            <div class="option-group" role="radiogroup" aria-label="Rating from 1 to 5">
-              <label><input type="radio" name="rating" value="1" required> 1</label>
-              <label><input type="radio" name="rating" value="2"> 2</label>
-              <label><input type="radio" name="rating" value="3"> 3</label>
-              <label><input type="radio" name="rating" value="4"> 4</label>
-              <label><input type="radio" name="rating" value="5"> 5</label>
+            <div class="star-rating" aria-label="Rating from 1 to 5">
+              <!-- radios are visually hidden but still handle validation -->
+              <input type="radio" id="rating-5" name="rating" value="5" required>
+              <label for="rating-5" title="Amazing">★</label>
+
+              <input type="radio" id="rating-4" name="rating" value="4">
+              <label for="rating-4" title="Great">★</label>
+
+              <input type="radio" id="rating-3" name="rating" value="3">
+              <label for="rating-3" title="Good">★</label>
+
+              <input type="radio" id="rating-2" name="rating" value="2">
+              <label for="rating-2" title="Meh">★</label>
+
+              <input type="radio" id="rating-1" name="rating" value="1">
+              <label for="rating-1" title="Never again">★</label>
             </div>
           </div>
 
           <div class="field">
-            <label>Visited with</label>
-            <div class="option-group">
-              <label><input type="checkbox" name="visitedWith" value="solo"> Solo</label>
-              <label><input type="checkbox" name="visitedWith" value="partner"> Partner</label>
-              <label><input type="checkbox" name="visitedWith" value="friends"> Friends</label>
-              <label><input type="checkbox" name="visitedWith" value="family"> Family</label>
-              <label><input type="checkbox" name="visitedWith" value="coworkers"> Coworkers</label>
-              <label><input type="checkbox" name="visitedWith" value="tourGroup"> Tour group</label>
+            <label>Price level</label>
+            <div class="option-group option-group-pill" role="radiogroup" aria-label="Price level">
+              <label class="pill">
+                <input type="radio" name="priceLevel" value="$"> $
+              </label>
+              <label class="pill">
+                <input type="radio" name="priceLevel" value="$$"> $$
+              </label>
+              <label class="pill">
+                <input type="radio" name="priceLevel" value="$$$"> $$$
+              </label>
             </div>
           </div>
+        </fieldset>
+
+        <!-- C. Tags + date -->
+        <fieldset>
+          <legend>Context</legend>
 
           <div class="field">
-            <label>Highlights</label>
+            <label>Keyword tags</label>
             <div class="option-group option-group-pill">
-              <label class="pill"><input type="checkbox" name="tags" value="greatCoffee"> Great coffee</label>
-              <label class="pill"><input type="checkbox" name="tags" value="scenicView"> Scenic view</label>
-              <label class="pill"><input type="checkbox" name="tags" value="quiet"> Quiet place</label>
-              <label class="pill"><input type="checkbox" name="tags" value="goodForWork"> Good for work</label>
-              <label class="pill"><input type="checkbox" name="tags" value="localVibes"> Local vibes</label>
-              <label class="pill"><input type="checkbox" name="tags" value="nightlife"> Nightlife</label>
+              <!-- name is KeywordTags to match your schema -->
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="spicy"> Spicy
+              </label>
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="sweet"> Sweet
+              </label>
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="comfort"> Comfort food
+              </label>
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="local"> Local favourite
+              </label>
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="instagrammable"> Instagrammable
+              </label>
+              <label class="pill">
+                <input type="checkbox" name="KeywordTags" value="vegetarian"> Vegetarian-friendly
+              </label>
             </div>
           </div>
 
           <div class="field">
-            <label>Would you return? <span class="required">*</span></label>
-            <div class="option-group" role="radiogroup" aria-label="Would you return">
-              <label><input type="radio" name="wouldReturn" value="yes" required> Yes</label>
-              <label><input type="radio" name="wouldReturn" value="maybe"> Maybe</label>
-              <label><input type="radio" name="wouldReturn" value="no"> No</label>
-            </div>
+            <label for="visitDate">Visit date <span class="required">*</span></label>
+            <input id="visitDate" name="visitDate" type="date" required>
           </div>
         </fieldset>
 
-        <!-- C. Practical details -->
+        <!-- D. Notes + photo -->
         <fieldset>
-          <legend>Practical details</legend>
+          <legend>Notes & photo</legend>
 
           <div class="field">
-            <label>Cost level</label>
-            <div class="option-group" role="radiogroup" aria-label="Cost level">
-              <label><input type="radio" name="costLevel" value="1"> $</label>
-              <label><input type="radio" name="costLevel" value="2"> $$</label>
-              <label><input type="radio" name="costLevel" value="3"> $$$</label>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="stayDuration">Stay duration</label>
-            <select id="stayDuration" name="stayDuration">
-              <option value="">Select one</option>
-              <option value="1-2h">1 to 2 hours</option>
-              <option value="halfDay">Half day</option>
-              <option value="fullDay">Full day</option>
-              <option value="overnight">Overnight</option>
-            </select>
-          </div>
-        </fieldset>
-
-        <!-- D. Notes -->
-        <fieldset>
-          <legend>Notes</legend>
-
-          <div class="field">
-            <label for="description">What made this place memorable?</label>
-            <textarea id="description" name="description" placeholder="The barista remembered my name and the sunset was beautiful over the river."></textarea>
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="What stood out? Flavour, vibe, service, company..."></textarea>
             <div class="char-counter" aria-live="polite">
-              <span id="descriptionCount">0</span>/500
+              <span id="notesCount">0</span>/500
             </div>
           </div>
 
           <div class="field">
-            <label for="personalTip">Tips for future you or friends</label>
-            <textarea id="personalTip" name="personalTip" placeholder="Go around 4 pm to avoid crowds and grab the window seat on the left."></textarea>
-          </div>
-
-          <div class="field">
-            <label for="photo">Add a photo (optional)</label>
-            <input id="photo" name="photo" type="file" accept="image/*">
+            <label for="photoUrl">Add a photo (optional)</label>
+            <input id="photoUrl" name="photoUrl" type="file" accept="image/*">
+            <div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
+              <p class="field-hint">Preview</p>
+              <img id="photoPreview" alt="Selected dish photo preview">
+            </div>
           </div>
         </fieldset>
 
         <div class="form-footer">
-          <button type="submit" class="primary-btn">Save place</button>
+          <button type="submit" class="primary-btn">Save dish</button>
           <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
         </div>
       </form>
@@ -197,4 +170,3 @@
   </main>
 </body>
 </html>
-
