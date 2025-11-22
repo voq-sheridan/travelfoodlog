@@ -23,10 +23,11 @@ const placeSchema = new mongoose.Schema(
     notes: { type: String },
     photoUrl: { type: String },
 
-    visited: { type: Boolean, default: true }, // optional
+    // optional flag, not used in UI yet
+    visited: { type: Boolean, default: true },
   },
   {
-    timestamps: true,
+    timestamps: true, // adds createdAt / updatedAt
   }
 );
 
