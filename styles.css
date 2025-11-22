@@ -1,3 +1,9 @@
+/* Playpen Sans for FoodieTrail title */
+.playpen-sans {
+  font-family: "Playpen Sans", cursive;
+  font-weight: 700;
+  font-size: 2.5rem;
+}
 /* Nuosu SIL font for Foodietrail title */
 .nuosu-sil-regular {
   font-family: "Nuosu SIL", sans-serif;
@@ -27,7 +33,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Nuosu SIL", sans-serif;
+  font-family: "Playpen Sans", cursive;
   font-size: 18px;
   color: var(--text-main);
   scroll-behavior: smooth;
