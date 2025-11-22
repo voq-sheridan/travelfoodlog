@@ -26,6 +26,11 @@ body {
   font-size: 18px;
   background: radial-gradient(circle at top, #fff7ed 0, var(--bg) 42%, #f7f0e6 100%);
   color: var(--text-main);
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 /* Layout */
@@ -127,6 +132,169 @@ input[type="file"] {
   min-height: 44px; /* accessibility: recommended minimum touch target */
   font-size: 1rem;
   line-height: 1.3;
+}
+
+/* Ensure date input calendar is accessible */
+input[type="date"] {
+  cursor: pointer;
+  position: relative;
+  font-size: 1.25rem; /* larger text */
+  padding: 1rem 1.2rem; /* more padding */
+  min-height: 60px; /* taller field */
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  position: absolute;
+  right: 1rem;
+  width: 2.5rem; /* larger calendar icon */
+  height: 2.5rem;
+  transform: scale(1.5); /* make icon even bigger */
+}
+
+/* Custom Date Picker */
+.custom-date-picker {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.date-picker-button {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  border: 1px solid #dddad4;
+  background: #fbfaf8;
+  cursor: pointer;
+  font-size: 1.25rem;
+  text-align: left;
+  min-height: 60px;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.date-picker-button:hover {
+  background: #ffffff;
+  border-color: var(--accent);
+}
+
+.date-picker-button:focus-visible {
+  outline: 3px solid rgba(249,115,22,0.9);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+
+.calendar-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.5rem);
+  background: var(--card-bg);
+  border: 2px solid var(--border-soft);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 16px 40px rgba(15,23,42,0.15);
+  z-index: 40;
+  display: none;
+  min-width: 400px;
+}
+
+.calendar-panel[aria-hidden="false"] {
+  display: block;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-month-year {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.calendar-nav {
+  background: none;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  width: 3rem;
+  height: 3rem;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.calendar-nav:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-weekdays span {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-muted);
+  padding: 0.5rem;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #fbfaf8;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  min-height: 50px;
+}
+
+.calendar-day:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.calendar-day.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.calendar-day.today {
+  border: 2px solid var(--accent);
+  font-weight: 700;
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.calendar-day.disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Clear, visible focus indications */
@@ -276,6 +444,31 @@ textarea {
   overflow: auto;
 }
 
+.country-search-input {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: #fbfaf8;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--card-bg);
+}
+
+.country-search-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.country-list-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
 .country-dropdown[aria-expanded="true"] .country-dropdown-panel,
 .country-dropdown-panel[aria-hidden="false"] {
   display: block;
@@ -314,10 +507,12 @@ textarea {
 /* Star rating */
 
 .star-rating {
-  display: inline-flex;
+  display: flex;
   flex-direction: row-reverse; /* needed for the CSS trick */
-  gap: 0.15rem;
-  font-size: 1.5rem;
+  justify-content: flex-end; /* align stars to the left (reversed due to row-reverse) */
+  gap: 1rem;
+  font-size: 15rem; /* extra large stars */
+  margin-top: 0.5rem;
 }
 
 .star-rating input {
@@ -339,7 +534,7 @@ textarea {
 .star-rating label:hover,
 .star-rating label:hover ~ label {
   color: #fde68a;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 /* Photo preview */
@@ -438,36 +633,78 @@ textarea::placeholder {
 .places-list {
   margin-top: 0.75rem;
   display: grid;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
-/* Optional: style individual saved place cards if your JS adds .place-card */
-.places-list .place-card {
-  padding: 0.9rem 1rem;
+/* Saved place cards - distinct visual separation */
+.saved-place {
+  background: var(--card-bg);
   border-radius: 14px;
-  border: 1px solid #e5dfd3;
-  background: #fffdf9;
-  display: grid;
-  gap: 0.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.places-list .place-title {
+.saved-place:hover {
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px);
+}
+
+.saved-place h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.35rem;
+  color: var(--text-main);
   font-weight: 600;
 }
 
-.places-list .place-meta {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+.saved-place p {
+  margin: 0.4rem 0;
+  line-height: 1.5;
+  font-size: 1rem;
 }
 
-.places-list .tag-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  background: #fef3c7;
-  color: #92400e;
-  font-size: 0.75rem;
+.saved-place strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.saved-place__actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.saved-place__actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: #fbfaf8;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.saved-place__actions button:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.saved-place__actions .delete-btn {
+  color: #b91c1c;
+}
+
+.saved-place__actions .delete-btn:hover {
+  background: #fee;
+  border-color: #b91c1c;
+}
+
+.notes-text {
+  font-style: italic;
+  color: var(--text-muted);
 }
 
 /* Responsive tweaks */

@@ -18,16 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Ensure exactly one country is selected (radio inside custom dropdown)
+      // Get selected country (now optional)
       const selectedCountry = document.querySelector("input[name='locationCountry']:checked")?.value || "";
-      if (!selectedCountry) {
-        statusEl.textContent = "Please choose a country.";
-        statusEl.classList.remove("success");
-        statusEl.classList.add("error");
-        const btn = document.getElementById("countryDropdownBtn");
-        if (btn) btn.focus();
-        return;
-      }
 
       // 2) Build the data object from the form
       const placeData = {
@@ -95,6 +87,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize country dropdown widget (custom multi-select)
   initCountryDropdown();
 
+  // Initialize custom date picker
+  initCustomDatePicker();
+
   loadPlaces();
 });
 
@@ -104,6 +99,7 @@ function initCountryDropdown() {
 
   const btn = document.getElementById("countryDropdownBtn");
   const panel = document.getElementById("countryPanel");
+  const searchInput = document.getElementById("countrySearch");
   const radios = Array.from(panel.querySelectorAll("input[type=radio][name='locationCountry']"));
 
   function updateButtonLabel() {
@@ -116,13 +112,25 @@ function initCountryDropdown() {
     }
   }
 
+  function filterCountries() {
+    const query = searchInput.value.toLowerCase().trim();
+    radios.forEach((radio) => {
+      const label = radio.parentElement;
+      const text = label.textContent.toLowerCase();
+      if (text.includes(query)) {
+        label.style.display = "";
+      } else {
+        label.style.display = "none";
+      }
+    });
+  }
+
   function openDropdown() {
     dropdown.setAttribute("aria-expanded", "true");
     btn.setAttribute("aria-expanded", "true");
     panel.setAttribute("aria-hidden", "false");
-    // focus first radio for keyboard users
-    const first = panel.querySelector("input[type=radio]");
-    if (first) first.focus();
+    // focus search input when dropdown opens
+    if (searchInput) searchInput.focus();
   }
 
   function closeDropdown() {
@@ -130,6 +138,11 @@ function initCountryDropdown() {
     btn.setAttribute("aria-expanded", "false");
     panel.setAttribute("aria-hidden", "true");
     btn.focus();
+    // clear search when closing
+    if (searchInput) {
+      searchInput.value = "";
+      filterCountries(); // reset filter
+    }
   }
 
   btn.addEventListener("click", (e) => {
@@ -140,7 +153,8 @@ function initCountryDropdown() {
 
   // Close when clicking outside
   document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target)) {
+    const expanded = dropdown.getAttribute("aria-expanded") === "true";
+    if (expanded && !dropdown.contains(e.target)) {
       closeDropdown();
     }
   });
@@ -160,8 +174,158 @@ function initCountryDropdown() {
     closeDropdown();
   }));
 
+  // Filter countries as user types
+  if (searchInput) {
+    searchInput.addEventListener("input", filterCountries);
+  }
+
   // Initialize label
   updateButtonLabel();
+}
+
+function initCustomDatePicker() {
+  const picker = document.getElementById("customDatePicker");
+  if (!picker) return;
+
+  const btn = document.getElementById("datePickerBtn");
+  const panel = document.getElementById("calendarPanel");
+  const hiddenInput = document.getElementById("visitDate");
+  const monthYearDisplay = document.getElementById("monthYear");
+  const calendarDaysContainer = document.getElementById("calendarDays");
+  const prevMonthBtn = document.getElementById("prevMonth");
+  const nextMonthBtn = document.getElementById("nextMonth");
+
+  let currentDate = new Date();
+  let selectedDate = null;
+
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatDisplayDate(date) {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update header
+    monthYearDisplay.textContent = currentDate.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+
+    // Clear previous days
+    calendarDaysContainer.innerHTML = '';
+
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    // Add previous month's trailing days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      const dayEl = document.createElement('button');
+      dayEl.type = 'button';
+      dayEl.className = 'calendar-day other-month';
+      dayEl.textContent = day;
+      calendarDaysContainer.appendChild(dayEl);
+    }
+
+    // Add current month's days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayEl = document.createElement('button');
+      dayEl.type = 'button';
+      dayEl.className = 'calendar-day';
+      dayEl.textContent = day;
+
+      const dateObj = new Date(year, month, day);
+      
+      // Check if today
+      const today = new Date();
+      if (dateObj.toDateString() === today.toDateString()) {
+        dayEl.classList.add('today');
+      }
+
+      // Check if selected
+      if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
+        dayEl.classList.add('selected');
+      }
+
+      dayEl.addEventListener('click', () => {
+        selectedDate = dateObj;
+        hiddenInput.value = formatDate(dateObj);
+        btn.textContent = formatDisplayDate(dateObj);
+        closeCalendar();
+      });
+
+      calendarDaysContainer.appendChild(dayEl);
+    }
+
+    // Add next month's leading days to fill the grid
+    const totalCells = calendarDaysContainer.children.length;
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let day = 1; day <= remainingCells; day++) {
+      const dayEl = document.createElement('button');
+      dayEl.type = 'button';
+      dayEl.className = 'calendar-day other-month';
+      dayEl.textContent = day;
+      calendarDaysContainer.appendChild(dayEl);
+    }
+  }
+
+  function openCalendar() {
+    panel.setAttribute('aria-hidden', 'false');
+    renderCalendar();
+  }
+
+  function closeCalendar() {
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  btn.addEventListener('click', () => {
+    const isOpen = panel.getAttribute('aria-hidden') === 'false';
+    if (isOpen) {
+      closeCalendar();
+    } else {
+      openCalendar();
+    }
+  });
+
+  prevMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  nextMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!picker.contains(e.target)) {
+      closeCalendar();
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const isOpen = panel.getAttribute('aria-hidden') === 'false';
+      if (isOpen) closeCalendar();
+    }
+  });
 }
 
 // READ: get all places and render them

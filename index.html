@@ -25,26 +25,28 @@
 
         <!-- A. Dish + Location -->
         <fieldset>
-          <legend>Dish & Location</legend>
+          <legend>Location</legend>
 
           <div class="field">
-            <label for="dishName">Dish name <span class="required">*</span></label>
-            <input id="dishName" name="dishName" type="text" required placeholder="Spicy miso ramen">
+            <label for="dishName">Dish / Restaurant name</label>
+            <input id="dishName" name="dishName" type="text" placeholder="Spicy miso ramen">
           </div>
 
           <div class="inline-fields">
             <div class="field">
-              <label for="locationCity">City <span class="required">*</span></label>
-              <input id="locationCity" name="locationCity" type="text" required placeholder="Tokyo">
+              <label for="locationCity">City</label>
+              <input id="locationCity" name="locationCity" type="text" placeholder="Tokyo">
             </div>
 
             <div class="field">
-              <label for="countryDropdownBtn">Country <span class="required">*</span></label>
+              <label for="countryDropdownBtn">Country</label>
               <!-- Accessible custom dropdown that contains checkboxes for multi-select. -->
               <div class="country-dropdown" id="countryDropdown" aria-expanded="false">
                 <button type="button" id="countryDropdownBtn" class="country-dropdown-button" aria-haspopup="listbox" aria-expanded="false" aria-controls="countryPanel">Choose country(s)</button>
 
                 <div id="countryPanel" class="country-dropdown-panel" role="radiogroup" aria-hidden="true">
+                  <input type="text" id="countrySearch" class="country-search-input" placeholder="Search countries..." aria-label="Search countries">
+                  <div class="country-list-wrapper">
                   <label class="pill"><input type="radio" name="locationCountry" value="Japan"> 🇯🇵 Japan</label>
                   <label class="pill"><input type="radio" name="locationCountry" value="Canada"> 🇨🇦 Canada</label>
                   <label class="pill"><input type="radio" name="locationCountry" value="Thailand"> 🇹🇭 Thailand</label>
@@ -90,18 +92,63 @@
                   <label class="pill"><input type="radio" name="locationCountry" value="Egypt"> 🇪🇬 Egypt</label>
                   <label class="pill"><input type="radio" name="locationCountry" value="Israel"> 🇮🇱 Israel</label>
                   <label class="pill"><input type="radio" name="locationCountry" value="Morocco"> 🇲🇦 Morocco</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Austria"> 🇦🇹 Austria</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Romania"> 🇷🇴 Romania</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Croatia"> 🇭🇷 Croatia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Iceland"> 🇮🇸 Iceland</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Ukraine"> 🇺🇦 Ukraine</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Peru"> 🇵🇪 Peru</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Ecuador"> 🇪🇨 Ecuador</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Costa Rica"> 🇨🇷 Costa Rica</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Panama"> 🇵🇦 Panama</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Venezuela"> 🇻🇪 Venezuela</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Uruguay"> 🇺🇾 Uruguay</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Jamaica"> 🇯🇲 Jamaica</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Cuba"> 🇨🇺 Cuba</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Dominican Republic"> 🇩🇴 Dominican Republic</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Kenya"> 🇰🇪 Kenya</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Nigeria"> 🇳🇬 Nigeria</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Ethiopia"> 🇪🇹 Ethiopia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Ghana"> 🇬🇭 Ghana</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Tanzania"> 🇹🇿 Tanzania</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Sri Lanka"> 🇱🇰 Sri Lanka</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Bangladesh"> 🇧🇩 Bangladesh</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Pakistan"> 🇵🇰 Pakistan</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Nepal"> 🇳🇵 Nepal</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Myanmar"> 🇲🇲 Myanmar</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Cambodia"> 🇰🇭 Cambodia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Laos"> 🇱🇦 Laos</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Mongolia"> 🇲🇳 Mongolia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Kazakhstan"> 🇰🇿 Kazakhstan</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Taiwan"> 🇹🇼 Taiwan</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Hong Kong"> 🇭🇰 Hong Kong</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Qatar"> 🇶🇦 Qatar</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Kuwait"> 🇰🇼 Kuwait</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Oman"> 🇴🇲 Oman</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Jordan"> 🇯🇴 Jordan</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Lebanon"> 🇱🇧 Lebanon</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Tunisia"> 🇹🇳 Tunisia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Algeria"> 🇩🇿 Algeria</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Slovenia"> 🇸🇮 Slovenia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Slovakia"> 🇸🇰 Slovakia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Bulgaria"> 🇧🇬 Bulgaria</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Serbia"> 🇷🇸 Serbia</label>
+                  </div>
                 </div>
               </div>
-              <p class="field-hint">Choose one or more countries from the dropdown</p>
             </div>
           </div>
 
           <div class="field">
-            <label>Place type <span class="required">*</span></label>
+            <label>Place type</label>
             <div class="option-group option-group-pill">
-              <label class="pill"><input type="radio" name="placeType" value="Street Food" required> Street Food</label>
+              <label class="pill"><input type="radio" name="placeType" value="Street Food"> Street Food</label>
               <label class="pill"><input type="radio" name="placeType" value="Cafe"> Cafe</label>
               <label class="pill"><input type="radio" name="placeType" value="Restaurant"> Restaurant</label>
+              <label class="pill"><input type="radio" name="placeType" value="Bakery"> Bakery</label>
+              <label class="pill"><input type="radio" name="placeType" value="Dessert Shop"> Dessert Shop</label>
+              <label class="pill"><input type="radio" name="placeType" value="Bar / Pub"> Bar / Pub</label>
+              <label class="pill"><input type="radio" name="placeType" value="Fast Food"> Fast Food</label>
             </div>
           </div>
         </fieldset>
@@ -111,9 +158,9 @@
           <legend>Experience</legend>
 
           <div class="field">
-            <label>Rating <span class="required">*</span></label>
+            <label>Rating</label>
             <div class="star-rating">
-              <input type="radio" id="rating-5" name="rating" value="5" required><label for="rating-5">★</label>
+              <input type="radio" id="rating-5" name="rating" value="5"><label for="rating-5">★</label>
               <input type="radio" id="rating-4" name="rating" value="4"><label for="rating-4">★</label>
               <input type="radio" id="rating-3" name="rating" value="3"><label for="rating-3">★</label>
               <input type="radio" id="rating-2" name="rating" value="2"><label for="rating-2">★</label>
@@ -138,18 +185,60 @@
           <div class="field">
             <label>Tags</label>
             <div class="option-group option-group-pill">
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="spicy"> Spicy</label>
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="sweet"> Sweet</label>
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="comfort"> Comfort</label>
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="local"> Local</label>
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="instagrammable"> Instagrammable</label>
-              <label class="pill"><input type="checkbox" name="KeywordTags" value="vegetarian"> Vegetarian</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Local Cuisine"> Local Cuisine</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Street Food"> Street Food</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Hidden Gem"> Hidden Gem</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Must-Try"> Must-Try</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Budget Eats"> Budget Eats</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Fine Dining"> Fine Dining</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Brunch Spot"> Brunch Spot</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Coffee Spot"> Coffee Spot</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Dessert"> Dessert</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Bakery"> Bakery</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Seafood"> Seafood</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="BBQ/Grill"> BBQ/Grill</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Noodles"> Noodles</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Night Market"> Night Market</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Photogenic"> Photogenic</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Aesthetic Spot"> Aesthetic Spot</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Popular on TikTok"> Popular on TikTok</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Quick Bite"> Quick Bite</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Late Night Eats"> Late Night Eats</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Near Landmark"> Near Landmark</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Close to Hotel"> Close to Hotel</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Good for Groups"> Good for Groups</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Solo-Friendly"> Solo-Friendly</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Scenic View"> Scenic View</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Rooftop"> Rooftop</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Traditional"> Traditional</label>
+              <label class="pill"><input type="checkbox" name="KeywordTags" value="Fusion"> Fusion</label>
             </div>
           </div>
 
           <div class="field">
-            <label for="visitDate">Visit date <span class="required">*</span></label>
-            <input id="visitDate" name="visitDate" type="date" required>
+            <label for="visitDate">Visit date</label>
+            <div class="custom-date-picker" id="customDatePicker">
+              <button type="button" id="datePickerBtn" class="date-picker-button">Choose date</button>
+              <input type="hidden" id="visitDate" name="visitDate">
+              
+              <div id="calendarPanel" class="calendar-panel" aria-hidden="true">
+                <div class="calendar-header">
+                  <button type="button" class="calendar-nav" id="prevMonth">‹</button>
+                  <span class="calendar-month-year" id="monthYear"></span>
+                  <button type="button" class="calendar-nav" id="nextMonth">›</button>
+                </div>
+                <div class="calendar-weekdays">
+                  <span>Sun</span>
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                </div>
+                <div class="calendar-days" id="calendarDays"></div>
+              </div>
+            </div>
           </div>
         </fieldset>
 
