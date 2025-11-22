@@ -278,5 +278,91 @@
     </section>
 
   </main>
+
+  <!-- EDIT MODAL -->
+  <div id="editModal" class="modal" hidden>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Dish</h2>
+        <button class="modal-close" id="closeEditModal">&times;</button>
+      </div>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        
+        <div class="form-group">
+          <label for="editDishName">Dish Name</label>
+          <input type="text" id="editDishName" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="editLocationCity">City</label>
+          <input type="text" id="editLocationCity" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="editLocationCountry">Country</label>
+          <input type="text" id="editLocationCountry" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="editPlaceType">Place Type</label>
+          <select id="editPlaceType" class="form-input">
+            <option value="">Not specified</option>
+            <option value="Street Food">Street Food</option>
+            <option value="Cafe">Cafe</option>
+            <option value="Restaurant">Restaurant</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Dessert Shop">Dessert Shop</option>
+            <option value="Bar/Pub">Bar/Pub</option>
+            <option value="Fast Food">Fast Food</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editRating">Rating</label>
+          <select id="editRating" class="form-input">
+            <option value="">No rating</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editPriceLevel">Price Level</label>
+          <select id="editPriceLevel" class="form-input">
+            <option value="">Not specified</option>
+            <option value="$">$ (Budget)</option>
+            <option value="$$">$$ (Moderate)</option>
+            <option value="$$$">$$$ (Expensive)</option>
+            <option value="$$$$">$$$$ (Very Expensive)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editVisitDate">Visit Date</label>
+          <input type="date" id="editVisitDate" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="editNotes">Notes</label>
+          <textarea id="editNotes" class="form-input" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="editPhotoUrl">Photo URL</label>
+          <input type="text" id="editPhotoUrl" class="form-input" placeholder="Leave unchanged or enter new URL">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="cancelEdit">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

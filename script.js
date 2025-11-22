@@ -444,7 +444,7 @@ function renderPlaces(places) {
           }</span></p>
 
           <div class="saved-place__actions">
-            <button class="edit-notes-btn">Edit notes</button>
+            <button class="edit-btn">Edit</button>
             <button class="delete-btn">Delete</button>
           </div>
         </div>
@@ -456,7 +456,7 @@ function renderPlaces(places) {
 // Global click handler for Update + Delete
 document.addEventListener("click", async (event) => {
   const deleteBtn = event.target.closest(".delete-btn");
-  const editBtn = event.target.closest(".edit-notes-btn");
+  const editBtn = event.target.closest(".edit-btn");
 
   // DELETE
   if (deleteBtn) {
@@ -484,38 +484,108 @@ document.addEventListener("click", async (event) => {
     }
   }
 
-  // UPDATE (edit notes)
+  // EDIT - Open edit modal with all fields
   if (editBtn) {
     const card = editBtn.closest(".saved-place");
     if (!card) return;
     const id = card.dataset.id;
     if (!id) return;
 
-    const notesEl = card.querySelector(".notes-text");
-    const currentNotes = notesEl ? notesEl.textContent : "";
-
-    const newNotes = prompt("Update notes for this dish:", currentNotes);
-    if (newNotes === null) {
-      // user cancelled
-      return;
-    }
-
+    // Fetch the full place data
     try {
-      const res = await fetch(`${API_BASE}/places/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: newNotes }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to update notes");
-      }
-
-      // Refresh list
-      loadPlaces();
+      const res = await fetch(`${API_BASE}/places/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch place data");
+      const place = await res.json();
+      
+      openEditModal(place);
     } catch (err) {
       console.error(err);
-      alert("Could not update notes. Please try again.");
+      alert("Could not load dish data for editing.");
     }
+  }
+});
+
+// Open edit modal and populate with place data
+function openEditModal(place) {
+  const modal = document.getElementById("editModal");
+  if (!modal) return;
+
+  // Populate form fields
+  document.getElementById("editId").value = place._id;
+  document.getElementById("editDishName").value = place.dishName || "";
+  document.getElementById("editLocationCity").value = place.locationCity || "";
+  document.getElementById("editLocationCountry").value = place.locationCountry || "";
+  document.getElementById("editPlaceType").value = place.placeType || "";
+  document.getElementById("editRating").value = place.rating || "";
+  document.getElementById("editPriceLevel").value = place.priceLevel || "";
+  document.getElementById("editVisitDate").value = place.visitDate ? place.visitDate.split('T')[0] : "";
+  document.getElementById("editNotes").value = place.notes || "";
+  document.getElementById("editPhotoUrl").value = place.photoUrl || "";
+
+  // Show modal
+  modal.hidden = false;
+}
+
+// Close edit modal
+function closeEditModal() {
+  const modal = document.getElementById("editModal");
+  if (modal) modal.hidden = true;
+}
+
+// Handle edit form submission
+document.addEventListener("DOMContentLoaded", () => {
+  const editForm = document.getElementById("editForm");
+  const closeBtn = document.getElementById("closeEditModal");
+  const cancelBtn = document.getElementById("cancelEdit");
+
+  if (closeBtn) closeBtn.addEventListener("click", closeEditModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeEditModal);
+
+  if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("editId").value;
+      const updatedData = {
+        dishName: document.getElementById("editDishName").value,
+        locationCity: document.getElementById("editLocationCity").value,
+        locationCountry: document.getElementById("editLocationCountry").value,
+        placeType: document.getElementById("editPlaceType").value,
+        rating: document.getElementById("editRating").value ? Number(document.getElementById("editRating").value) : null,
+        priceLevel: document.getElementById("editPriceLevel").value,
+        visitDate: document.getElementById("editVisitDate").value,
+        notes: document.getElementById("editNotes").value,
+        photoUrl: document.getElementById("editPhotoUrl").value,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/places/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to update dish");
+        }
+
+        closeEditModal();
+        loadPlaces();
+        alert("Dish updated successfully! 🎉");
+      } catch (err) {
+        console.error(err);
+        alert("Could not update dish. Please try again.");
+      }
+    });
+  }
+
+  // Close modal when clicking outside
+  const modal = document.getElementById("editModal");
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeEditModal();
+      }
+    });
   }
 });
