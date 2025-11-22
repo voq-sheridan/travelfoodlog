@@ -21,6 +21,17 @@ document.addEventListener("DOMContentLoaded", () => {
       // Get selected country (now optional)
       const selectedCountry = document.querySelector("input[name='locationCountry']:checked")?.value || "";
 
+      // Handle photo file upload - convert to base64
+      let photoUrl = null;
+      const photoInput = document.querySelector("#photoUrl");
+      if (photoInput && photoInput.files && photoInput.files[0]) {
+        try {
+          photoUrl = await fileToBase64(photoInput.files[0]);
+        } catch (err) {
+          console.error("Error converting photo:", err);
+        }
+      }
+
       // 2) Build the data object from the form
       const placeData = {
         dishName: document.querySelector("#dishName")?.value || "",
@@ -42,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ).map((c) => c.value),
         visitDate: document.querySelector("#visitDate")?.value || "",
         notes: document.querySelector("#notes")?.value || "",
-        photoUrl: null, // optional
+        photoUrl: photoUrl,
       };
 
       console.log("Sending to backend:", placeData);
@@ -71,6 +82,14 @@ document.addEventListener("DOMContentLoaded", () => {
         statusEl.classList.add("success");
 
         form.reset();
+        
+        // Clear photo preview after form reset
+        const previewWrapper = document.getElementById("photoPreviewWrapper");
+        const previewImg = document.getElementById("photoPreview");
+        if (previewWrapper && previewImg) {
+          previewWrapper.hidden = true;
+          previewImg.src = "";
+        }
 
         // Reload list so the new item appears
         loadPlaces();
@@ -90,8 +109,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize custom date picker
   initCustomDatePicker();
 
+  // Initialize photo preview
+  initPhotoPreview();
+
   loadPlaces();
 });
+
+// Helper function to convert file to base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Initialize photo preview functionality
+function initPhotoPreview() {
+  const photoInput = document.getElementById("photoUrl");
+  const previewWrapper = document.getElementById("photoPreviewWrapper");
+  const previewImg = document.getElementById("photoPreview");
+
+  if (!photoInput || !previewWrapper || !previewImg) return;
+
+  photoInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const base64 = await fileToBase64(file);
+        previewImg.src = base64;
+        previewWrapper.hidden = false;
+      } catch (err) {
+        console.error("Error previewing photo:", err);
+      }
+    } else {
+      previewWrapper.hidden = true;
+      previewImg.src = "";
+    }
+  });
+}
 
 function initCountryDropdown() {
   const dropdown = document.getElementById("countryDropdown");
@@ -368,6 +425,7 @@ function renderPlaces(places) {
 
       return `
         <div class="saved-place" data-id="${place._id}">
+          ${place.photoUrl ? `<img src="${place.photoUrl}" alt="${place.dishName || 'Dish photo'}" class="saved-place__photo">` : ''}
           <h3>${place.dishName || "Untitled dish"}</h3>
           <p><strong>Location:</strong> ${place.locationCity || "?"}, ${
         place.locationCountry || "?"
