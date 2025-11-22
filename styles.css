@@ -5,49 +5,67 @@
   box-sizing: border-box;
 }
 
+/* Theme tokens */
+:root {
+  --bg: #fdf7f2;
+  --card-bg: #ffffff;
+  --accent: #f97316;        /* warm orange for TasteTrail */
+  --accent-soft: #fff2e6;
+  --text-main: #18212f;
+  --text-muted: #6b7280;
+  --border-soft: #e5dfd3;
+}
+
+/* Base */
+
 body {
   margin: 0;
   padding: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f4f5fb;
-  color: #222;
+  background: radial-gradient(circle at top, #fff7ed 0, var(--bg) 42%, #f7f0e6 100%);
+  color: var(--text-main);
 }
-
-/* Add spacing above the Saved dishes section */
-section.card.saved-dishes-section {
-  margin-top: 3rem;
-}
-
 
 /* Layout */
 
 .page {
-  max-width: 760px;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 3rem;
+  padding: 1.75rem 1.25rem 3rem;
 }
+
+/* Header / Branding */
 
 .page-header {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
-.page-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.6rem;
-}
-
-.page-header p {
+.app-name {
   margin: 0;
-  color: #555;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.app-tagline {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
 }
 
 /* Card */
 
 .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 1.6rem 1.5rem;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--border-soft);
+}
+
+/* Add spacing above the Saved dishes section */
+section.card.saved-dishes-section {
+  margin-top: 2.4rem;
 }
 
 /* Form structure */
@@ -59,9 +77,9 @@ form {
 }
 
 fieldset {
-  border: 1px solid #e0e4f0;
-  border-radius: 12px;
-  padding: 1rem 1.25rem 0.75rem;
+  border: 1px solid #e8e1d7;
+  border-radius: 14px;
+  padding: 1rem 1.25rem 0.9rem;
 }
 
 legend {
@@ -76,7 +94,7 @@ legend {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
 }
 
 label {
@@ -92,12 +110,16 @@ input[type="text"],
 input[type="date"],
 select,
 textarea {
-  padding: 0.5rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #cbd5f0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 9px;
+  border: 1px solid #dddad4;
   font: inherit;
-  background: #f9fafb;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  background: #fbfaf8;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
 }
 
 input[type="text"]:focus,
@@ -105,9 +127,10 @@ input[type="date"]:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #4f46e5;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+  border-color: var(--accent);
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.18);
+  transform: translateY(-0.5px);
 }
 
 textarea {
@@ -150,14 +173,19 @@ textarea {
 
 .option-group-pill .pill {
   border-radius: 999px;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid #cbd5f0;
-  background: #f9fafb;
+  padding: 0.38rem 0.9rem;
+  border: 1px solid #ddd0c2;
+  background: #fbfaf8;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease,
+    transform 0.05s ease;
 }
 
 .option-group-pill .pill input {
@@ -165,27 +193,29 @@ textarea {
 }
 
 .option-group-pill .pill:hover {
-  background: #eef2ff;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: translateY(-0.5px);
 }
 
 .option-group-pill .pill:has(input:checked) {
-  background: #4f46e5;
-  border-color: #4f46e5;
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.24);
 }
 
 /* Hints and helpers */
 
 .field-hint {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .char-counter {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
   text-align: right;
 }
 
@@ -245,27 +275,30 @@ textarea {
 
 .primary-btn {
   align-self: flex-start;
-  padding: 0.6rem 1.4rem;
+  padding: 0.65rem 1.5rem;
   border-radius: 999px;
   border: none;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  background: #4f46e5;
+  background: var(--accent);
   color: #fff;
-  box-shadow: 0 10px 18px rgba(79, 70, 229, 0.3);
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.35);
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
 }
 
 .primary-btn:hover {
-  background: #4338ca;
-  box-shadow: 0 12px 22px rgba(67, 56, 202, 0.35);
+  background: #ea580c;
+  box-shadow: 0 12px 24px rgba(234, 88, 12, 0.4);
   transform: translateY(-1px);
 }
 
 .primary-btn:active {
-  background: #3730a3;
-  box-shadow: 0 6px 14px rgba(55, 48, 163, 0.4);
+  background: #c2410c;
+  box-shadow: 0 7px 16px rgba(180, 83, 9, 0.45);
   transform: translateY(0);
 }
 
@@ -284,14 +317,61 @@ textarea {
   color: #b91c1c;
 }
 
+/* Saved dishes list */
+
+.saved-dishes-section h2 {
+  margin-top: 0;
+  margin-bottom: 0.4rem;
+}
+
+.saved-dishes-section > p {
+  margin-top: 0;
+  color: var(--text-muted);
+}
+
+.places-list {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* Optional: style individual saved place cards if your JS adds .place-card */
+.places-list .place-card {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid #e5dfd3;
+  background: #fffdf9;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.places-list .place-title {
+  font-weight: 600;
+}
+
+.places-list .place-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.places-list .tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.75rem;
+}
+
 /* Responsive tweaks */
 
 @media (max-width: 600px) {
   .card {
-    padding: 1.25rem 1rem;
+    padding: 1.3rem 1.05rem;
   }
 
-  .page-header h1 {
-    font-size: 1.4rem;
+  .app-name {
+    font-size: 1.6rem;
   }
 }
