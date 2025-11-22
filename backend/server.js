@@ -69,17 +69,6 @@ app.delete("/places/:id", async (req, res) => {
   }
 });
 
-// ⭐ NEW ROUTE — get all places
-app.get("/places", async (req, res) => {
-  try {
-    const allPlaces = await Place.find();
-    res.json(allPlaces);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch places" });
-  }
-});
-
-
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

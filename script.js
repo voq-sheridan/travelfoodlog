@@ -1,103 +1,211 @@
+const API_BASE = "http://localhost:3000";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("#dishForm");
   const statusEl = document.querySelector("#formStatus");
 
-  if (!form || !statusEl) return;
+  // Handle form submit (CREATE)
+  if (form && statusEl) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault(); // stop page refresh
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault(); // stop page refresh
-
-    // 1) Validate required fields
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      statusEl.textContent = "Please fill in the required fields.";
-      statusEl.classList.remove("success");
-      statusEl.classList.add("error");
-      return;
-    }
-
-    // 2) Build the data object exactly matching your form
-    const placeData = {
-      dishName: document.querySelector("#dishName")?.value || "",
-
-      locationCity: document.querySelector("#locationCity")?.value || "",
-      locationCountry: document.querySelector("#locationCountry")?.value || "",
-
-      placeType: document.querySelector("input[name='placeType']:checked")?.value || "",
-
-      rating: Number(document.querySelector("input[name='rating']:checked")?.value) || null,
-
-      priceLevel: document.querySelector("input[name='priceLevel']:checked")?.value || "",
-
-      KeywordTags: Array.from(document.querySelectorAll("input[name='KeywordTags']:checked"))
-        .map((c) => c.value),
-
-      visitDate: document.querySelector("#visitDate")?.value || "",
-
-      notes: document.querySelector("#notes")?.value || "",
-
-      photoUrl: null // optional — we will handle file upload later
-    };
-
-    console.log("Sending to backend:", placeData);
-
-    // 3) Send to backend
-    try {
-      const response = await fetch("http://localhost:3000/places", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(placeData),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Failed to save");
+      // 1) Validate required fields
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        statusEl.textContent = "Please fill in the required fields.";
+        statusEl.classList.remove("success");
+        statusEl.classList.add("error");
+        return;
       }
 
-      const saved = await response.json();
-      console.log("Saved in MongoDB:", saved);
+      // 2) Build the data object from the form
+      const placeData = {
+        dishName: document.querySelector("#dishName")?.value || "",
+        locationCity: document.querySelector("#locationCity")?.value || "",
+        locationCountry: document.querySelector("#locationCountry")?.value || "",
+        placeType:
+          document.querySelector("input[name='placeType']:checked")?.value ||
+          "",
+        rating:
+          Number(
+            document.querySelector("input[name='rating']:checked")?.value
+          ) || null,
+        priceLevel:
+          document.querySelector("input[name='priceLevel']:checked")?.value ||
+          "",
+        KeywordTags: Array.from(
+          document.querySelectorAll("input[name='KeywordTags']:checked")
+        ).map((c) => c.value),
+        visitDate: document.querySelector("#visitDate")?.value || "",
+        notes: document.querySelector("#notes")?.value || "",
+        photoUrl: null, // optional
+      };
 
-      // 4) Show success
-      statusEl.textContent = "Dish saved successfully! 🎉";
-      statusEl.classList.remove("error");
-      statusEl.classList.add("success");
+      console.log("Sending to backend:", placeData);
 
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Error: " + err.message;
-      statusEl.classList.remove("success");
-      statusEl.classList.add("error");
-    }
-  });
+      // 3) Send to backend (POST /places)
+      try {
+        const response = await fetch(`${API_BASE}/places`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(placeData),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || "Failed to save");
+        }
+
+        const saved = await response.json();
+        console.log("Saved in MongoDB:", saved);
+
+        // 4) Show success
+        statusEl.textContent = "Dish saved successfully! 🎉";
+        statusEl.classList.remove("error");
+        statusEl.classList.add("success");
+
+        form.reset();
+
+        // Reload list so the new item appears
+        loadPlaces();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error: " + err.message;
+        statusEl.classList.remove("success");
+        statusEl.classList.add("error");
+      }
+    });
+  }
+
+  // Load existing places on page load (READ)
+  loadPlaces();
 });
 
+// READ: get all places and render them
 async function loadPlaces() {
   try {
-    const res = await fetch("/places");
+    const res = await fetch(`${API_BASE}/places`);
     const places = await res.json();
-
-    const listEl = document.getElementById("placesList");
-    if (!places.length) {
-      listEl.innerHTML = "<p>No saved dishes yet.</p>";
-      return;
-    }
-
-    listEl.innerHTML = places.map(place => `
-      <div class="saved-place">
-        <h3>${place.dishName}</h3>
-        <p><strong>Location:</strong> ${place.locationCity}, ${place.locationCountry}</p>
-        <p><strong>Type:</strong> ${place.placeType}</p>
-        <p><strong>Rating:</strong> ${place.rating}/5</p>
-        <p><strong>Visited on:</strong> ${new Date(place.visitDate).toLocaleDateString()}</p>
-        <p><strong>Notes:</strong> ${place.notes || "—"}</p>
-      </div>
-    `).join("");
+    renderPlaces(places);
   } catch (err) {
     console.error("Error loading places", err);
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadPlaces);
+// Render list of places into #placesList
+function renderPlaces(places) {
+  const listEl = document.getElementById("placesList");
+  if (!listEl) return;
+
+  if (!places.length) {
+    listEl.innerHTML = "<p>No saved dishes yet.</p>";
+    return;
+  }
+
+  listEl.innerHTML = places
+    .map((place) => {
+      const visitDateText = place.visitDate
+        ? new Date(place.visitDate).toLocaleDateString()
+        : "Not set";
+
+      const tagsText = Array.isArray(place.KeywordTags)
+        ? place.KeywordTags.join(", ")
+        : "";
+
+      return `
+        <div class="saved-place" data-id="${place._id}">
+          <h3>${place.dishName || "Untitled dish"}</h3>
+          <p><strong>Location:</strong> ${place.locationCity || "?"}, ${
+        place.locationCountry || "?"
+      }</p>
+          <p><strong>Type:</strong> ${place.placeType || "Not specified"}</p>
+          <p><strong>Rating:</strong> ${
+            place.rating != null ? `${place.rating}/5` : "No rating"
+          }</p>
+          <p><strong>Price level:</strong> ${
+            place.priceLevel || "Not specified"
+          }</p>
+          <p><strong>Tags:</strong> ${tagsText || "None"}</p>
+          <p><strong>Visited on:</strong> ${visitDateText}</p>
+          <p><strong>Notes:</strong> <span class="notes-text">${
+            place.notes || "No notes yet."
+          }</span></p>
+
+          <div class="saved-place__actions">
+            <button class="edit-notes-btn">Edit notes</button>
+            <button class="delete-btn">Delete</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+// Global click handler for Update + Delete
+document.addEventListener("click", async (event) => {
+  const deleteBtn = event.target.closest(".delete-btn");
+  const editBtn = event.target.closest(".edit-notes-btn");
+
+  // DELETE
+  if (deleteBtn) {
+    const card = deleteBtn.closest(".saved-place");
+    if (!card) return;
+    const id = card.dataset.id;
+    if (!id) return;
+
+    const confirmDelete = confirm("Delete this dish?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/places/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete dish");
+      }
+
+      // Refresh list
+      loadPlaces();
+    } catch (err) {
+      console.error(err);
+      alert("Could not delete this dish. Please try again.");
+    }
+  }
+
+  // UPDATE (edit notes)
+  if (editBtn) {
+    const card = editBtn.closest(".saved-place");
+    if (!card) return;
+    const id = card.dataset.id;
+    if (!id) return;
+
+    const notesEl = card.querySelector(".notes-text");
+    const currentNotes = notesEl ? notesEl.textContent : "";
+
+    const newNotes = prompt("Update notes for this dish:", currentNotes);
+    if (newNotes === null) {
+      // user cancelled
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/places/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: newNotes }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update notes");
+      }
+
+      // Refresh list
+      loadPlaces();
+    } catch (err) {
+      console.error(err);
+      alert("Could not update notes. Please try again.");
+    }
+  }
+});
