@@ -87,10 +87,17 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadPlaces() {
   try {
     const res = await fetch(`${API_BASE}/places`);
+    if (!res.ok) throw new Error("Failed to load places");
+
     const places = await res.json();
     renderPlaces(places);
   } catch (err) {
     console.error("Error loading places", err);
+
+    const listEl = document.getElementById("placesList");
+    if (listEl) {
+      listEl.innerHTML = "<p>Unable to load your dishes right now.</p>";
+    }
   }
 }
 
