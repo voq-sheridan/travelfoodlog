@@ -39,18 +39,60 @@
             </div>
 
             <div class="field">
-              <label for="locationCountry">Country <span class="required">*</span></label>
-              <select id="locationCountry" name="locationCountry" required>
-                <option value="">Choose country</option>
-                <option>Japan</option>
-                <option>Canada</option>
-                <option>Thailand</option>
-                <option>Vietnam</option>
-                <option>France</option>
-                <option>Italy</option>
-                <option>United States</option>
-                <option>Other</option>
-              </select>
+              <label for="countryDropdownBtn">Country <span class="required">*</span></label>
+              <!-- Accessible custom dropdown that contains checkboxes for multi-select. -->
+              <div class="country-dropdown" id="countryDropdown" aria-expanded="false">
+                <button type="button" id="countryDropdownBtn" class="country-dropdown-button" aria-haspopup="listbox" aria-expanded="false" aria-controls="countryPanel">Choose country(s)</button>
+
+                <div id="countryPanel" class="country-dropdown-panel" role="radiogroup" aria-hidden="true">
+                  <label class="pill"><input type="radio" name="locationCountry" value="Japan"> 🇯🇵 Japan</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Canada"> 🇨🇦 Canada</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Thailand"> 🇹🇭 Thailand</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Vietnam"> 🇻🇳 Vietnam</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="France"> 🇫🇷 France</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Italy"> 🇮🇹 Italy</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="United States"> 🇺🇸 United States</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="United Kingdom"> 🇬🇧 United Kingdom</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Germany"> 🇩🇪 Germany</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Spain"> 🇪🇸 Spain</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="China"> 🇨🇳 China</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="South Korea"> 🇰🇷 South Korea</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="India"> 🇮🇳 India</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Mexico"> 🇲🇽 Mexico</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Brazil"> 🇧🇷 Brazil</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Australia"> 🇦🇺 Australia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Netherlands"> 🇳🇱 Netherlands</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Sweden"> 🇸🇪 Sweden</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Norway"> 🇳🇴 Norway</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Switzerland"> 🇨🇭 Switzerland</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Russia"> 🇷🇺 Russia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="South Africa"> 🇿🇦 South Africa</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Argentina"> 🇦🇷 Argentina</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Turkey"> 🇹🇷 Turkey</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="UAE"> 🇦🇪 UAE</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Saudi Arabia"> 🇸🇦 Saudi Arabia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Indonesia"> 🇮🇩 Indonesia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Malaysia"> 🇲🇾 Malaysia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Philippines"> 🇵🇭 Philippines</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Singapore"> 🇸🇬 Singapore</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Portugal"> 🇵🇹 Portugal</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Belgium"> 🇧🇪 Belgium</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Greece"> 🇬🇷 Greece</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Poland"> 🇵🇱 Poland</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Czech Republic"> �🇿 Czech Republic</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Hungary"> 🇭🇺 Hungary</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Colombia"> 🇨🇴 Colombia</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Chile"> 🇨🇱 Chile</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Denmark"> 🇩🇰 Denmark</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Finland"> 🇫🇮 Finland</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Ireland"> 🇮🇪 Ireland</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="New Zealand"> 🇳🇿 New Zealand</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Egypt"> 🇪🇬 Egypt</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Israel"> 🇮🇱 Israel</label>
+                  <label class="pill"><input type="radio" name="locationCountry" value="Morocco"> 🇲🇦 Morocco</label>
+                </div>
+              </div>
+              <p class="field-hint">Choose one or more countries from the dropdown</p>
             </div>
           </div>
 
@@ -117,13 +159,13 @@
 
           <div class="field">
             <label for="notes">Notes</label>
-            <textarea id="notes" name="notes" maxlength="500" placeholder="What stood out? Flavour, vibe, company..."></textarea>
+            <textarea id="notes" name="notes" maxlength="500" placeholder="What stood out? Flavour, vibe, company..." aria-describedby="notesCount"></textarea>
             <div class="char-counter"><span id="notesCount">0</span>/500</div>
           </div>
 
           <div class="field">
             <label for="photoUrl">Add a photo (optional)</label>
-            <input id="photoUrl" name="photoUrl" type="file" accept="image/*">
+            <input id="photoUrl" name="photoUrl" type="file" accept="image/*" aria-label="Upload a photo of the dish (optional)">
             <div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
               <p class="field-hint">Preview</p>
               <img id="photoPreview" alt="Selected dish photo preview">
@@ -133,7 +175,7 @@
 
         <div class="form-footer">
           <button type="submit" class="primary-btn">Save dish</button>
-          <p id="formStatus" class="form-status"></p>
+          <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
         </div>
       </form>
     </section>

@@ -18,11 +18,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Ensure exactly one country is selected (radio inside custom dropdown)
+      const selectedCountry = document.querySelector("input[name='locationCountry']:checked")?.value || "";
+      if (!selectedCountry) {
+        statusEl.textContent = "Please choose a country.";
+        statusEl.classList.remove("success");
+        statusEl.classList.add("error");
+        const btn = document.getElementById("countryDropdownBtn");
+        if (btn) btn.focus();
+        return;
+      }
+
       // 2) Build the data object from the form
       const placeData = {
         dishName: document.querySelector("#dishName")?.value || "",
         locationCity: document.querySelector("#locationCity")?.value || "",
-        locationCountry: document.querySelector("#locationCountry")?.value || "",
+  // backend expects a string for locationCountry; use the selected radio value
+  locationCountry: selectedCountry,
         placeType:
           document.querySelector("input[name='placeType']:checked")?.value ||
           "",
@@ -80,8 +92,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Load existing places on page load (READ)
+  // Initialize country dropdown widget (custom multi-select)
+  initCountryDropdown();
+
   loadPlaces();
 });
+
+function initCountryDropdown() {
+  const dropdown = document.getElementById("countryDropdown");
+  if (!dropdown) return;
+
+  const btn = document.getElementById("countryDropdownBtn");
+  const panel = document.getElementById("countryPanel");
+  const radios = Array.from(panel.querySelectorAll("input[type=radio][name='locationCountry']"));
+
+  function updateButtonLabel() {
+    const checked = radios.find((r) => r.checked);
+    if (!checked) {
+      btn.textContent = "Choose country";
+    } else {
+      const lbl = checked.parentElement ? checked.parentElement.textContent.trim() : checked.value;
+      btn.textContent = lbl;
+    }
+  }
+
+  function openDropdown() {
+    dropdown.setAttribute("aria-expanded", "true");
+    btn.setAttribute("aria-expanded", "true");
+    panel.setAttribute("aria-hidden", "false");
+    // focus first radio for keyboard users
+    const first = panel.querySelector("input[type=radio]");
+    if (first) first.focus();
+  }
+
+  function closeDropdown() {
+    dropdown.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-expanded", "false");
+    panel.setAttribute("aria-hidden", "true");
+    btn.focus();
+  }
+
+  btn.addEventListener("click", (e) => {
+    const expanded = dropdown.getAttribute("aria-expanded") === "true";
+    if (expanded) closeDropdown();
+    else openDropdown();
+  });
+
+  // Close when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target)) {
+      closeDropdown();
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const expanded = dropdown.getAttribute("aria-expanded") === "true";
+      if (expanded) closeDropdown();
+    }
+  });
+
+  // Update label when radios change
+  radios.forEach((r) => r.addEventListener("change", () => {
+    updateButtonLabel();
+    // close dropdown after selection for faster UX
+    closeDropdown();
+  }));
+
+  // Initialize label
+  updateButtonLabel();
+}
 
 // READ: get all places and render them
 async function loadPlaces() {
