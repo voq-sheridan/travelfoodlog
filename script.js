@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://travelfoodlog-backend.onrender.com/";
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("#dishForm");
