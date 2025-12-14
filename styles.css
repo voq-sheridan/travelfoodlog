@@ -531,12 +531,24 @@ textarea {
   text-align: right;
 }
 
+/* FIX: Rating layout (label + stars should align left, no big gap) */
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* keep stars on the left */
+.star-rating {
+  align-self: flex-start;
+}
+
 /* Star rating */
 .star-rating {
   display: flex;
-  flex-direction: row-reverse; /* keeps hover logic correct */
-  justify-content: flex-start; /* align left */
-  align-items: center;
+  flex-direction:row-reverse;
+  align-items: flex-start; /* 👈 forces left alignment */
   gap: 0.4rem;
 }
 
