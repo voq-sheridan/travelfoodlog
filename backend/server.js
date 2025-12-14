@@ -48,7 +48,7 @@ app.get("/restaurants/search", async (req, res) => {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
           "X-Goog-FieldMask":
-            "places.id,places.displayName,places.formattedAddress,places.location,places.rating",
+            "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.priceLevel",
         },
       }
     );
@@ -60,6 +60,7 @@ app.get("/restaurants/search", async (req, res) => {
       lat: p.location?.latitude,
       lng: p.location?.longitude,
       rating: p.rating,
+      priceLevel: p.priceLevel || null, // ✅ NEW
       source: "google-places",
     }));
 

@@ -102,6 +102,7 @@ function renderRestaurantResults(restaurants, resultsEl) {
       const name = escapeHtml(r.name || "Unnamed place");
       const address = escapeHtml(r.address || "");
       const rating = r.rating != null ? Number(r.rating).toFixed(1) : "—";
+      const price = mapGooglePriceLevel(r.priceLevel);
 
       return `
         <div class="restaurant-result" data-index="${idx}">
@@ -109,6 +110,7 @@ function renderRestaurantResults(restaurants, resultsEl) {
             <h4 class="restaurant-result__name">${name}</h4>
             ${address ? `<p class="restaurant-result__address">${address}</p>` : ""}
             <p class="restaurant-result__rating"><strong>Rating:</strong> ${rating}</p>
+            <p class="restaurant-result__price"><strong>Price:</strong> ${price}</p>
           </div>
 
           <button
@@ -134,6 +136,15 @@ function applyRestaurantToForm(restaurant) {
 
   // Try to guess city/country from formatted address
   const { city, country } = parseCityCountryFromAddress(restaurant.address || "");
+
+  // Auto-select price level radio if available
+if (restaurant.priceLevel) {
+  const priceSymbol = mapGooglePriceLevel(restaurant.priceLevel);
+  const priceRadio = document.querySelector(
+    `input[name="priceLevel"][value="${priceSymbol}"]`
+  );
+  if (priceRadio) priceRadio.checked = true;
+}
 
   const cityInput = document.getElementById("locationCity");
   if (cityInput && city) cityInput.value = city;
@@ -739,4 +750,19 @@ function escapeHtml(str) {
 // For querySelector value matching
 function cssEscape(value) {
   return CSS?.escape ? CSS.escape(value) : String(value).replace(/"/g, '\\"');
+}
+
+function mapGooglePriceLevel(priceLevel) {
+  switch (priceLevel) {
+    case "PRICE_LEVEL_INEXPENSIVE":
+      return "$";
+    case "PRICE_LEVEL_MODERATE":
+      return "$$";
+    case "PRICE_LEVEL_EXPENSIVE":
+      return "$$$";
+    case "PRICE_LEVEL_VERY_EXPENSIVE":
+      return "$$$$";
+    default:
+      return "—";
+  }
 }
