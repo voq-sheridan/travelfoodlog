@@ -592,7 +592,7 @@ async function handleGlobalClicks(event) {
       loadPlaces();
     } catch (err) {
       console.error(err);
-      alert("Could not delete this place. Please try again.");
+      alert("Could not delete this dish. Please try again.");
     }
     return;
   }
@@ -661,10 +661,10 @@ function initEditModal() {
 
       closeEditModal();
       loadPlaces();
-      alert("Your place updated successfully! 🎉");
+      alert("Dish updated successfully! 🎉");
     } catch (err) {
       console.error(err);
-      alert("Could not update place. Please try again.");
+      alert("Could not update dish. Please try again.");
     }
   });
 }
