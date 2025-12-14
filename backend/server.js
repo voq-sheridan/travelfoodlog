@@ -1,5 +1,9 @@
+// backend/server.js
+require("dotenv").config(); // load .env first
+
 const express = require("express");
 const cors = require("cors");
+const axios = require("axios");
 const connectDB = require("./db");
 const Place = require("./models/place");
 
@@ -14,6 +18,64 @@ connectDB();
 app.get("/", (req, res) => {
   res.json({ message: "Backend is running and connected to MongoDB!" });
 });
+
+//
+// ===== Restaurant Search API (Google Places Text Search) =====
+//
+app.get("/restaurants/search", async (req, res) => {
+  try {
+    const { query, location } = req.query;
+
+    if (!query && !location) {
+      return res
+        .status(400)
+        .json({ error: "Missing query or location parameter." });
+    }
+
+    // e.g. "ramen in Toronto, ON"
+    const textQuery = location
+      ? `${query || "restaurants"} in ${location}`
+      : query;
+
+    const response = await axios.post(
+      "https://places.googleapis.com/v1/places:searchText",
+      {
+        textQuery,
+        pageSize: 10,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY,
+          "X-Goog-FieldMask":
+            "places.id,places.displayName,places.formattedAddress,places.location,places.rating",
+        },
+      }
+    );
+
+    const restaurants = (response.data.places || []).map((p) => ({
+      externalId: p.id,
+      name: p.displayName?.text,
+      address: p.formattedAddress,
+      lat: p.location?.latitude,
+      lng: p.location?.longitude,
+      rating: p.rating,
+      source: "google-places",
+    }));
+
+    res.json(restaurants);
+  } catch (error) {
+    console.error(
+      "Error searching restaurants:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ error: "Failed to search restaurants." });
+  }
+});
+
+//
+// ===== Existing CRUD for your own places =====
+//
 
 // CREATE a new place
 app.post("/places", async (req, res) => {
@@ -50,7 +112,9 @@ app.get("/places/:id", async (req, res) => {
 // UPDATE a place
 app.put("/places/:id", async (req, res) => {
   try {
-    const updated = await Place.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Place.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!updated) return res.status(404).json({ error: "Not found" });
     res.json(updated);
   } catch (error) {
@@ -74,4 +138,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
