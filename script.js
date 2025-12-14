@@ -1,126 +1,261 @@
 const API_BASE = "https://travelfoodlog-backend.onrender.com";
 
+// Store the selected restaurant from search (so we can save extra info if you want)
+let selectedRestaurant = null;
+
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector("#dishForm");
-  const statusEl = document.querySelector("#formStatus");
-
-  // Handle form submit (CREATE)
-  if (form && statusEl) {
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault(); // stop page refresh
-
-      // 1) Validate required fields
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        statusEl.textContent = "Please fill in the required fields.";
-        statusEl.classList.remove("success");
-        statusEl.classList.add("error");
-        return;
-      }
-
-      // Get selected country (now optional)
-      const selectedCountry =
-        document.querySelector("input[name='locationCountry']:checked")
-          ?.value || "";
-
-      // Handle photo file upload - convert to base64
-      let photoUrl = null;
-      const photoInput = document.querySelector("#photoUrl");
-      if (photoInput && photoInput.files && photoInput.files[0]) {
-        try {
-          photoUrl = await fileToBase64(photoInput.files[0]);
-        } catch (err) {
-          console.error("Error converting photo:", err);
-        }
-      }
-
-      // 2) Build the data object from the form
-      const placeData = {
-        dishName: document.querySelector("#dishName")?.value || "",
-        locationCity: document.querySelector("#locationCity")?.value || "",
-        // backend expects a string for locationCountry; use the selected radio value
-        locationCountry: selectedCountry,
-        placeType:
-          document.querySelector("input[name='placeType']:checked")?.value ||
-          "",
-        rating:
-          Number(
-            document.querySelector("input[name='rating']:checked")?.value
-          ) || null,
-        priceLevel:
-          document.querySelector("input[name='priceLevel']:checked")?.value ||
-          "",
-        KeywordTags: Array.from(
-          document.querySelectorAll("input[name='KeywordTags']:checked")
-        ).map((c) => c.value),
-        visitDate: document.querySelector("#visitDate")?.value || "",
-        notes: document.querySelector("#notes")?.value || "",
-        photoUrl: photoUrl,
-      };
-
-      console.log("Sending to backend:", placeData);
-
-      // 3) Send to backend (POST /places)
-      try {
-        const response = await fetch(`${API_BASE}/places`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(placeData),
-        });
-
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.error || "Failed to save");
-        }
-
-        const saved = await response.json();
-        console.log("Saved in MongoDB:", saved);
-
-        // 4) Show success
-        statusEl.textContent = "Dish saved successfully! 🎉";
-        statusEl.classList.remove("error");
-        statusEl.classList.add("success");
-
-        form.reset();
-
-        // Clear photo preview after form reset
-        const previewWrapper = document.getElementById("photoPreviewWrapper");
-        const previewImg = document.getElementById("photoPreview");
-        if (previewWrapper && previewImg) {
-          previewWrapper.hidden = true;
-          previewImg.src = "";
-        }
-
-        // Reload list so the new item appears
-        loadPlaces();
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = "Error: " + err.message;
-        statusEl.classList.remove("success");
-        statusEl.classList.add("error");
-      }
-    });
-  }
-
-  // Initialize country dropdown widget (custom multi-select)
+  // Core UI init
   initCountryDropdown();
-
-  // Initialize custom date picker
   initCustomDatePicker();
-
-  // Initialize photo preview
   initPhotoPreview();
+  initEditModal();
 
-  // NEW: set up restaurant search UI (Google Places)
+  // Restaurant search init (new)
   initRestaurantSearch();
+
+  // Form submit (CREATE)
+  initCreateForm();
 
   // Load existing places on page load (READ)
   loadPlaces();
+
+  // Global click handler for Delete/Edit (and any future actions)
+  document.addEventListener("click", handleGlobalClicks);
 });
 
-// Helper function to convert file to base64
+/* =========================
+   Restaurant Search (NEW)
+   ========================= */
+
+function initRestaurantSearch() {
+  const searchForm = document.getElementById("restaurantSearchForm");
+  const queryInput = document.getElementById("searchQuery");
+  const locationInput = document.getElementById("searchLocation");
+  const statusEl = document.getElementById("searchStatus");
+  const resultsEl = document.getElementById("searchResults");
+
+  // If you haven't added the search UI yet, don't crash.
+  if (!searchForm || !queryInput || !locationInput || !resultsEl) return;
+
+  searchForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const query = queryInput.value.trim();
+    const location = locationInput.value.trim();
+
+    if (!query && !location) {
+      if (statusEl) statusEl.textContent = "Type a dish/restaurant or a location.";
+      return;
+    }
+
+    resultsEl.innerHTML = `<p>Searching...</p>`;
+    if (statusEl) statusEl.textContent = "";
+
+    try {
+      const url = new URL(`${API_BASE}/restaurants/search`);
+      if (query) url.searchParams.set("query", query);
+      if (location) url.searchParams.set("location", location);
+
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Search failed");
+      }
+
+      const restaurants = await res.json();
+      renderRestaurantResults(restaurants, resultsEl);
+    } catch (err) {
+      console.error(err);
+      resultsEl.innerHTML = `<p>Could not load results. Try again.</p>`;
+      if (statusEl) statusEl.textContent = `Error: ${err.message}`;
+    }
+  });
+}
+
+function renderRestaurantResults(restaurants, resultsEl) {
+  if (!Array.isArray(restaurants) || restaurants.length === 0) {
+    resultsEl.innerHTML = `<p>No results found. Try another keyword.</p>`;
+    return;
+  }
+
+  resultsEl.innerHTML = restaurants
+    .map((r, idx) => {
+      const name = escapeHtml(r.name || "Unnamed place");
+      const address = escapeHtml(r.address || "");
+      const rating = r.rating != null ? Number(r.rating).toFixed(1) : "—";
+
+      // Store the full object in a data attribute (lightweight via index + in-memory list)
+      return `
+        <div class="restaurant-result" data-index="${idx}">
+          <div class="restaurant-result__meta">
+            <h4 class="restaurant-result__name">${name}</h4>
+            ${address ? `<p class="restaurant-result__address">${address}</p>` : ""}
+            <p class="restaurant-result__rating"><strong>Rating:</strong> ${rating}</p>
+          </div>
+          <button type="button" class="use-place-btn" data-action="use-place" data-index="${idx}">
+            Use this place
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+
+  // Save list on the element so we can retrieve by index on click
+  resultsEl._restaurants = restaurants;
+}
+
+function applyRestaurantToForm(restaurant) {
+  selectedRestaurant = restaurant;
+
+  // Fill dish/restaurant name
+  const dishNameInput = document.getElementById("dishName");
+  if (dishNameInput) dishNameInput.value = restaurant.name || "";
+
+  // Try to guess city/country from formatted address
+  // (Not perfect, but good enough for autofill)
+  const { city, country } = parseCityCountryFromAddress(restaurant.address || "");
+
+  const cityInput = document.getElementById("locationCity");
+  if (cityInput && city) cityInput.value = city;
+
+  // Select the country radio if it exists in your list
+  if (country) {
+    const countryRadio = document.querySelector(
+      `input[type="radio"][name="locationCountry"][value="${cssEscape(country)}"]`
+    );
+    if (countryRadio) {
+      countryRadio.checked = true;
+      // Update dropdown label
+      const dropdownBtn = document.getElementById("countryDropdownBtn");
+      if (dropdownBtn) {
+        const lbl = countryRadio.parentElement?.textContent?.trim() || country;
+        dropdownBtn.textContent = lbl;
+      }
+    }
+  }
+
+  // Optional: put address into notes (you can remove this if you don't want it)
+  const notes = document.getElementById("notes");
+  if (notes && restaurant.address) {
+    const existing = notes.value.trim();
+    if (!existing) notes.value = `Address: ${restaurant.address}`;
+  }
+
+  // Small UX: scroll to form
+  const form = document.getElementById("dishForm");
+  if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function parseCityCountryFromAddress(address) {
+  // Example: "421 College St, Toronto, ON M5T 1T1, Canada"
+  // We’ll assume the last chunk is country, and the second last chunk often contains city/province.
+  const parts = address.split(",").map((s) => s.trim()).filter(Boolean);
+  const country = parts.length >= 1 ? parts[parts.length - 1] : "";
+  const city = parts.length >= 2 ? parts[parts.length - 2].split(" ")[0] : ""; // “Toronto” from “Toronto ON...”
+  return { city, country };
+}
+
+/* =========================
+   Create (POST /places)
+   ========================= */
+
+function initCreateForm() {
+  const form = document.querySelector("#dishForm");
+  const statusEl = document.querySelector("#formStatus");
+  if (!form || !statusEl) return;
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      statusEl.textContent = "Please fill in the required fields.";
+      statusEl.classList.remove("success");
+      statusEl.classList.add("error");
+      return;
+    }
+
+    const selectedCountry =
+      document.querySelector("input[name='locationCountry']:checked")?.value || "";
+
+    // Photo file -> base64
+    let photoUrl = null;
+    const photoInput = document.querySelector("#photoUrl");
+    if (photoInput?.files?.[0]) {
+      try {
+        photoUrl = await fileToBase64(photoInput.files[0]);
+      } catch (err) {
+        console.error("Error converting photo:", err);
+      }
+    }
+
+    const placeData = {
+      dishName: document.querySelector("#dishName")?.value || "",
+      locationCity: document.querySelector("#locationCity")?.value || "",
+      locationCountry: selectedCountry,
+      placeType: document.querySelector("input[name='placeType']:checked")?.value || "",
+      rating: Number(document.querySelector("input[name='rating']:checked")?.value) || null,
+      priceLevel: document.querySelector("input[name='priceLevel']:checked")?.value || "",
+      KeywordTags: Array.from(
+        document.querySelectorAll("input[name='KeywordTags']:checked")
+      ).map((c) => c.value),
+      visitDate: document.querySelector("#visitDate")?.value || "",
+      notes: document.querySelector("#notes")?.value || "",
+      photoUrl,
+
+      // Optional: save Google info too (nice for Project 3)
+      externalId: selectedRestaurant?.externalId || "",
+      address: selectedRestaurant?.address || "",
+      lat: selectedRestaurant?.lat ?? null,
+      lng: selectedRestaurant?.lng ?? null,
+      source: selectedRestaurant?.source || "",
+    };
+
+    try {
+      const response = await fetch(`${API_BASE}/places`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(placeData),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to save");
+      }
+
+      statusEl.textContent = "Dish saved successfully! 🎉";
+      statusEl.classList.remove("error");
+      statusEl.classList.add("success");
+
+      form.reset();
+      selectedRestaurant = null;
+
+      // Clear photo preview
+      const previewWrapper = document.getElementById("photoPreviewWrapper");
+      const previewImg = document.getElementById("photoPreview");
+      if (previewWrapper && previewImg) {
+        previewWrapper.hidden = true;
+        previewImg.src = "";
+      }
+
+      // Reset country dropdown label
+      const dropdownBtn = document.getElementById("countryDropdownBtn");
+      if (dropdownBtn) dropdownBtn.textContent = "Choose country";
+
+      loadPlaces();
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Error: " + err.message;
+      statusEl.classList.remove("success");
+      statusEl.classList.add("error");
+    }
+  });
+}
+
+/* =========================
+   Helpers: file -> base64
+   ========================= */
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -130,30 +265,37 @@ function fileToBase64(file) {
   });
 }
 
-// Initialize photo preview functionality
+/* =========================
+   Photo preview
+   ========================= */
+
 function initPhotoPreview() {
   const photoInput = document.getElementById("photoUrl");
   const previewWrapper = document.getElementById("photoPreviewWrapper");
   const previewImg = document.getElementById("photoPreview");
-
   if (!photoInput || !previewWrapper || !previewImg) return;
 
   photoInput.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        const base64 = await fileToBase64(file);
-        previewImg.src = base64;
-        previewWrapper.hidden = false;
-      } catch (err) {
-        console.error("Error previewing photo:", err);
-      }
-    } else {
+    const file = e.target.files?.[0];
+    if (!file) {
       previewWrapper.hidden = true;
       previewImg.src = "";
+      return;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      previewImg.src = base64;
+      previewWrapper.hidden = false;
+    } catch (err) {
+      console.error("Error previewing photo:", err);
     }
   });
 }
+
+/* =========================
+   Country dropdown (your existing widget)
+   ========================= */
 
 function initCountryDropdown() {
   const dropdown = document.getElementById("countryDropdown");
@@ -168,26 +310,16 @@ function initCountryDropdown() {
 
   function updateButtonLabel() {
     const checked = radios.find((r) => r.checked);
-    if (!checked) {
-      btn.textContent = "Choose country";
-    } else {
-      const lbl = checked.parentElement
-        ? checked.parentElement.textContent.trim()
-        : checked.value;
-      btn.textContent = lbl;
-    }
+    if (!checked) btn.textContent = "Choose country";
+    else btn.textContent = checked.parentElement?.textContent?.trim() || checked.value;
   }
 
   function filterCountries() {
-    const query = searchInput.value.toLowerCase().trim();
+    const q = (searchInput?.value || "").toLowerCase().trim();
     radios.forEach((radio) => {
       const label = radio.parentElement;
       const text = label.textContent.toLowerCase();
-      if (text.includes(query)) {
-        label.style.display = "";
-      } else {
-        label.style.display = "none";
-      }
+      label.style.display = text.includes(q) ? "" : "none";
     });
   }
 
@@ -195,7 +327,7 @@ function initCountryDropdown() {
     dropdown.setAttribute("aria-expanded", "true");
     btn.setAttribute("aria-expanded", "true");
     panel.setAttribute("aria-hidden", "false");
-    if (searchInput) searchInput.focus();
+    searchInput?.focus();
   }
 
   function closeDropdown() {
@@ -203,6 +335,7 @@ function initCountryDropdown() {
     btn.setAttribute("aria-expanded", "false");
     panel.setAttribute("aria-hidden", "true");
     btn.focus();
+
     if (searchInput) {
       searchInput.value = "";
       filterCountries();
@@ -211,19 +344,14 @@ function initCountryDropdown() {
 
   btn.addEventListener("click", () => {
     const expanded = dropdown.getAttribute("aria-expanded") === "true";
-    if (expanded) closeDropdown();
-    else openDropdown();
+    expanded ? closeDropdown() : openDropdown();
   });
 
-  // Close when clicking outside
   document.addEventListener("click", (e) => {
     const expanded = dropdown.getAttribute("aria-expanded") === "true";
-    if (expanded && !dropdown.contains(e.target)) {
-      closeDropdown();
-    }
+    if (expanded && !dropdown.contains(e.target)) closeDropdown();
   });
 
-  // Close on Escape
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       const expanded = dropdown.getAttribute("aria-expanded") === "true";
@@ -231,7 +359,6 @@ function initCountryDropdown() {
     }
   });
 
-  // Update label when radios change
   radios.forEach((r) =>
     r.addEventListener("change", () => {
       updateButtonLabel();
@@ -239,14 +366,13 @@ function initCountryDropdown() {
     })
   );
 
-  // Filter countries as user types
-  if (searchInput) {
-    searchInput.addEventListener("input", filterCountries);
-  }
-
-  // Initialize label
+  searchInput?.addEventListener("input", filterCountries);
   updateButtonLabel();
 }
+
+/* =========================
+   Custom date picker (your existing widget)
+   ========================= */
 
 function initCustomDatePicker() {
   const picker = document.getElementById("customDatePicker");
@@ -264,10 +390,10 @@ function initCustomDatePicker() {
   let selectedDate = null;
 
   function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
 
   function formatDisplayDate(date) {
@@ -283,21 +409,17 @@ function initCustomDatePicker() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    // Update header
     monthYearDisplay.textContent = currentDate.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
     });
 
-    // Clear previous days
     calendarDaysContainer.innerHTML = "";
 
-    // Get first day of month and number of days
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-    // Add previous month's trailing days
     for (let i = firstDay - 1; i >= 0; i--) {
       const day = daysInPrevMonth - i;
       const dayEl = document.createElement("button");
@@ -307,7 +429,6 @@ function initCustomDatePicker() {
       calendarDaysContainer.appendChild(dayEl);
     }
 
-    // Add current month's days
     for (let day = 1; day <= daysInMonth; day++) {
       const dayEl = document.createElement("button");
       dayEl.type = "button";
@@ -315,15 +436,11 @@ function initCustomDatePicker() {
       dayEl.textContent = day;
 
       const dateObj = new Date(year, month, day);
-
       const today = new Date();
-      if (dateObj.toDateString() === today.toDateString()) {
-        dayEl.classList.add("today");
-      }
 
-      if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
+      if (dateObj.toDateString() === today.toDateString()) dayEl.classList.add("today");
+      if (selectedDate && dateObj.toDateString() === selectedDate.toDateString())
         dayEl.classList.add("selected");
-      }
 
       dayEl.addEventListener("click", () => {
         selectedDate = dateObj;
@@ -335,10 +452,8 @@ function initCustomDatePicker() {
       calendarDaysContainer.appendChild(dayEl);
     }
 
-    // Add next month's leading days to fill the grid
     const totalCells = calendarDaysContainer.children.length;
-    const remainingCells =
-      totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
     for (let day = 1; day <= remainingCells; day++) {
       const dayEl = document.createElement("button");
       dayEl.type = "button";
@@ -359,11 +474,7 @@ function initCustomDatePicker() {
 
   btn.addEventListener("click", () => {
     const isOpen = panel.getAttribute("aria-hidden") === "false";
-    if (isOpen) {
-      closeCalendar();
-    } else {
-      openCalendar();
-    }
+    isOpen ? closeCalendar() : openCalendar();
   });
 
   prevMonthBtn.addEventListener("click", () => {
@@ -376,14 +487,10 @@ function initCustomDatePicker() {
     renderCalendar();
   });
 
-  // Close when clicking outside
   document.addEventListener("click", (e) => {
-    if (!picker.contains(e.target)) {
-      closeCalendar();
-    }
+    if (!picker.contains(e.target)) closeCalendar();
   });
 
-  // Close on Escape
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       const isOpen = panel.getAttribute("aria-hidden") === "false";
@@ -392,25 +499,23 @@ function initCustomDatePicker() {
   });
 }
 
-// READ: get all places and render them
+/* =========================
+   READ: load + render places
+   ========================= */
+
 async function loadPlaces() {
   try {
     const res = await fetch(`${API_BASE}/places`);
     if (!res.ok) throw new Error("Failed to load places");
-
     const places = await res.json();
     renderPlaces(places);
   } catch (err) {
     console.error("Error loading places", err);
-
     const listEl = document.getElementById("placesList");
-    if (listEl) {
-      listEl.innerHTML = "<p>Unable to load your dishes right now.</p>";
-    }
+    if (listEl) listEl.innerHTML = "<p>Unable to load your dishes right now.</p>";
   }
 }
 
-// Render list of places into #placesList
 function renderPlaces(places) {
   const listEl = document.getElementById("placesList");
   if (!listEl) return;
@@ -426,39 +531,27 @@ function renderPlaces(places) {
         ? new Date(place.visitDate).toLocaleDateString()
         : "Not set";
 
-      const tagsText = Array.isArray(place.KeywordTags)
-        ? place.KeywordTags.join(", ")
-        : "";
+      const tagsText = Array.isArray(place.KeywordTags) ? place.KeywordTags.join(", ") : "";
 
       return `
         <div class="saved-place" data-id="${place._id}">
           ${
             place.photoUrl
-              ? `<img src="${place.photoUrl}" alt="${
-                  place.dishName || "Dish photo"
-                }" class="saved-place__photo">`
+              ? `<img src="${place.photoUrl}" alt="${escapeHtml(place.dishName || "Dish photo")}" class="saved-place__photo">`
               : ""
           }
-          <h3>${place.dishName || "Untitled dish"}</h3>
-          <p><strong>Location:</strong> ${place.locationCity || "?"}, ${
-        place.locationCountry || "?"
-      }</p>
-          <p><strong>Type:</strong> ${place.placeType || "Not specified"}</p>
-          <p><strong>Rating:</strong> ${
-            place.rating != null ? `${place.rating}/5` : "No rating"
-          }</p>
-          <p><strong>Price level:</strong> ${
-            place.priceLevel || "Not specified"
-          }</p>
-          <p><strong>Tags:</strong> ${tagsText || "None"}</p>
-          <p><strong>Visited on:</strong> ${visitDateText}</p>
-          <p><strong>Notes:</strong> <span class="notes-text">${
-            place.notes || "No notes yet."
-          }</span></p>
+          <h3>${escapeHtml(place.dishName || "Untitled dish")}</h3>
+          <p><strong>Location:</strong> ${escapeHtml(place.locationCity || "?")}, ${escapeHtml(place.locationCountry || "?")}</p>
+          <p><strong>Type:</strong> ${escapeHtml(place.placeType || "Not specified")}</p>
+          <p><strong>Rating:</strong> ${place.rating != null ? `${place.rating}/5` : "No rating"}</p>
+          <p><strong>Price level:</strong> ${escapeHtml(place.priceLevel || "Not specified")}</p>
+          <p><strong>Tags:</strong> ${escapeHtml(tagsText || "None")}</p>
+          <p><strong>Visited on:</strong> ${escapeHtml(visitDateText)}</p>
+          <p><strong>Notes:</strong> <span class="notes-text">${escapeHtml(place.notes || "No notes yet.")}</span></p>
 
           <div class="saved-place__actions">
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+            <button class="edit-btn" type="button">Edit</button>
+            <button class="delete-btn" type="button">Delete</button>
           </div>
         </div>
       `;
@@ -466,228 +559,124 @@ function renderPlaces(places) {
     .join("");
 }
 
-// ========= Restaurant Search (Google Places via backend) =========
-function initRestaurantSearch() {
-  const searchQueryInput = document.querySelector("#searchQuery");
-  const searchLocationInput = document.querySelector("#searchLocation");
-  const searchBtn = document.querySelector("#searchBtn");
-  const searchResultsContainer = document.querySelector("#searchResults");
+/* =========================
+   Global click handler
+   ========================= */
 
-  if (
-    !searchQueryInput ||
-    !searchLocationInput ||
-    !searchBtn ||
-    !searchResultsContainer
-  ) {
-    return;
-  }
-
-  searchBtn.addEventListener("click", async () => {
-    const query = searchQueryInput.value.trim();
-    const location = searchLocationInput.value.trim();
-
-    if (!query || !location) {
-      alert("Please enter both what you want to eat and a city.");
-      return;
-    }
-
-    searchBtn.disabled = true;
-    searchBtn.textContent = "Searching...";
-
-    try {
-      const res = await fetch(
-        `${API_BASE}/restaurants/search?query=${encodeURIComponent(
-          query
-        )}&location=${encodeURIComponent(location)}`
-      );
-
-      if (!res.ok) {
-        throw new Error("Search failed");
-      }
-
-      const restaurants = await res.json();
-      renderRestaurantResults(restaurants);
-    } catch (err) {
-      console.error("Restaurant search error:", err);
-      searchResultsContainer.innerHTML =
-        "<p>Sorry, something went wrong while searching. Please try again.</p>";
-    } finally {
-      searchBtn.disabled = false;
-      searchBtn.textContent = "Search";
-    }
-  });
-}
-
-function renderRestaurantResults(restaurants) {
-  const container = document.querySelector("#searchResults");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  if (!restaurants || restaurants.length === 0) {
-    container.innerHTML = "<p>No results found for this search.</p>";
-    return;
-  }
-
-  restaurants.forEach((r) => {
-    const card = document.createElement("article");
-    card.className = "place-card";
-
-    const ratingText =
-      typeof r.rating === "number" ? r.rating.toFixed(1) : "N/A";
-
-    card.innerHTML = `
-      <div class="place-main">
-        <div>
-          <h3>${r.name || "Unknown place"}</h3>
-          <p class="place-address">${r.address || ""}</p>
-        </div>
-        <div class="place-meta">
-          <span class="pill pill-small">★ ${ratingText}</span>
-        </div>
-      </div>
-      <button class="secondary-btn use-place-btn" type="button">
-        Use this place
-      </button>
-    `;
-
-    const useBtn = card.querySelector(".use-place-btn");
-    useBtn.addEventListener("click", () => fillFormFromPlace(r));
-
-    container.appendChild(card);
-  });
-}
-
-function fillFormFromPlace(r) {
-  const dishNameInput = document.querySelector("#dishName");
-  const cityInput = document.querySelector("#locationCity");
-  const countryRadios = document.querySelectorAll(
-    "input[name='locationCountry']"
-  );
-  const ratingInputs = document.querySelectorAll("input[name='rating']");
-  const placeTypeRadios = document.querySelectorAll("input[name='placeType']");
-  const countryDropdownBtn = document.querySelector("#countryDropdownBtn");
-
-  // Dish / restaurant name
-  if (dishNameInput) {
-    dishNameInput.value = r.name || "";
-  }
-
-  // Rough city guess: first part of address
-  if (cityInput && r.address) {
-    const parts = r.address.split(",");
-    cityInput.value = parts[0].trim();
-  }
-
-  // Country guess: last part of address
-  if (countryRadios.length && r.address) {
-    const countryGuess = r.address
-      .split(",")
-      .slice(-1)[0]
-      .trim()
-      .toLowerCase();
-
-    let matchedRadio = null;
-    countryRadios.forEach((radio) => {
-      if (radio.value.toLowerCase() === countryGuess) {
-        radio.checked = true;
-        matchedRadio = radio;
-      } else {
-        radio.checked = false;
-      }
-    });
-
-    if (matchedRadio && countryDropdownBtn) {
-      const lbl = matchedRadio.parentElement
-        ? matchedRadio.parentElement.textContent.trim()
-        : matchedRadio.value;
-      countryDropdownBtn.textContent = lbl;
-    }
-  }
-
-  // Rating from Google → round to nearest star
-  if (ratingInputs.length && typeof r.rating === "number") {
-    const rounded = Math.round(r.rating);
-    ratingInputs.forEach((input) => {
-      input.checked = Number(input.value) === rounded;
-    });
-  }
-
-  // Default place type to Restaurant
-  placeTypeRadios.forEach((radio) => {
-    radio.checked = radio.value === "Restaurant";
-  });
-
-  // Scroll to main form
-  const formCard = document.querySelector(".form-card");
-  if (formCard) {
-    formCard.scrollIntoView({ behavior: "smooth" });
-  }
-}
-
-// Global click handler for Update + Delete
-document.addEventListener("click", async (event) => {
+async function handleGlobalClicks(event) {
   const deleteBtn = event.target.closest(".delete-btn");
   const editBtn = event.target.closest(".edit-btn");
+  const usePlaceBtn = event.target.closest("[data-action='use-place']");
+
+  // Use this place (restaurant search)
+  if (usePlaceBtn) {
+    const resultsEl = document.getElementById("searchResults");
+    const restaurants = resultsEl?._restaurants || [];
+    const index = Number(usePlaceBtn.dataset.index);
+    const restaurant = restaurants[index];
+    if (restaurant) applyRestaurantToForm(restaurant);
+    return;
+  }
 
   // DELETE
   if (deleteBtn) {
     const card = deleteBtn.closest(".saved-place");
-    if (!card) return;
-    const id = card.dataset.id;
+    const id = card?.dataset?.id;
     if (!id) return;
 
-    const confirmDelete = confirm("Delete this dish?");
-    if (!confirmDelete) return;
+    if (!confirm("Delete this dish?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/places/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to delete dish");
-      }
-
-      // Refresh list
+      const res = await fetch(`${API_BASE}/places/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete dish");
       loadPlaces();
     } catch (err) {
       console.error(err);
-      alert("Could not delete this dish. Please try again.");
+      alert("Could not delete this place. Please try again.");
     }
+    return;
   }
 
-  // EDIT - Open edit modal with all fields
+  // EDIT
   if (editBtn) {
     const card = editBtn.closest(".saved-place");
-    if (!card) return;
-    const id = card.dataset.id;
+    const id = card?.dataset?.id;
     if (!id) return;
 
-    // Fetch the full place data
     try {
       const res = await fetch(`${API_BASE}/places/${id}`);
       if (!res.ok) throw new Error("Failed to fetch place data");
       const place = await res.json();
-
       openEditModal(place);
     } catch (err) {
       console.error(err);
       alert("Could not load dish data for editing.");
     }
   }
-});
+}
 
-// Open edit modal and populate with place data
+/* =========================
+   Edit modal
+   ========================= */
+
+function initEditModal() {
+  const editForm = document.getElementById("editForm");
+  const closeBtn = document.getElementById("closeEditModal");
+  const cancelBtn = document.getElementById("cancelEdit");
+  const modal = document.getElementById("editModal");
+
+  closeBtn?.addEventListener("click", closeEditModal);
+  cancelBtn?.addEventListener("click", closeEditModal);
+
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeEditModal();
+  });
+
+  editForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("editId").value;
+    const updatedData = {
+      dishName: document.getElementById("editDishName").value,
+      locationCity: document.getElementById("editLocationCity").value,
+      locationCountry: document.getElementById("editLocationCountry").value,
+      placeType: document.getElementById("editPlaceType").value,
+      rating: document.getElementById("editRating").value
+        ? Number(document.getElementById("editRating").value)
+        : null,
+      priceLevel: document.getElementById("editPriceLevel").value,
+      visitDate: document.getElementById("editVisitDate").value,
+      notes: document.getElementById("editNotes").value,
+      photoUrl: document.getElementById("editPhotoUrl").value,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/places/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!res.ok) throw new Error("Failed to update dish");
+
+      closeEditModal();
+      loadPlaces();
+      alert("Your place updated successfully! 🎉");
+    } catch (err) {
+      console.error(err);
+      alert("Could not update place. Please try again.");
+    }
+  });
+}
+
 function openEditModal(place) {
   const modal = document.getElementById("editModal");
   if (!modal) return;
 
   document.getElementById("editId").value = place._id;
   document.getElementById("editDishName").value = place.dishName || "";
-  document.getElementById("editLocationCity").value =
-    place.locationCity || "";
-  document.getElementById("editLocationCountry").value =
-    place.locationCountry || "";
+  document.getElementById("editLocationCity").value = place.locationCity || "";
+  document.getElementById("editLocationCountry").value = place.locationCountry || "";
   document.getElementById("editPlaceType").value = place.placeType || "";
   document.getElementById("editRating").value = place.rating || "";
   document.getElementById("editPriceLevel").value = place.priceLevel || "";
@@ -700,68 +689,25 @@ function openEditModal(place) {
   modal.hidden = false;
 }
 
-// Close edit modal
 function closeEditModal() {
   const modal = document.getElementById("editModal");
   if (modal) modal.hidden = true;
 }
 
-// Handle edit form submission
-document.addEventListener("DOMContentLoaded", () => {
-  const editForm = document.getElementById("editForm");
-  const closeBtn = document.getElementById("closeEditModal");
-  const cancelBtn = document.getElementById("cancelEdit");
+/* =========================
+   Small utilities
+   ========================= */
 
-  if (closeBtn) closeBtn.addEventListener("click", closeEditModal);
-  if (cancelBtn) cancelBtn.addEventListener("click", closeEditModal);
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-  if (editForm) {
-    editForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const id = document.getElementById("editId").value;
-      const updatedData = {
-        dishName: document.getElementById("editDishName").value,
-        locationCity: document.getElementById("editLocationCity").value,
-        locationCountry:
-          document.getElementById("editLocationCountry").value,
-        placeType: document.getElementById("editPlaceType").value,
-        rating: document.getElementById("editRating").value
-          ? Number(document.getElementById("editRating").value)
-          : null,
-        priceLevel: document.getElementById("editPriceLevel").value,
-        visitDate: document.getElementById("editVisitDate").value,
-        notes: document.getElementById("editNotes").value,
-        photoUrl: document.getElementById("editPhotoUrl").value,
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/places/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedData),
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to update dish");
-        }
-
-        closeEditModal();
-        loadPlaces();
-        alert("Dish updated successfully! 🎉");
-      } catch (err) {
-        console.error(err);
-        alert("Could not update dish. Please try again.");
-      }
-    });
-  }
-
-  const modal = document.getElementById("editModal");
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeEditModal();
-      }
-    });
-  }
-});
+// For querySelector value matching
+function cssEscape(value) {
+  return CSS?.escape ? CSS.escape(value) : String(value).replace(/"/g, '\\"');
+}
