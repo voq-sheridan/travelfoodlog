@@ -19,7 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Get selected country (now optional)
-      const selectedCountry = document.querySelector("input[name='locationCountry']:checked")?.value || "";
+      const selectedCountry =
+        document.querySelector("input[name='locationCountry']:checked")
+          ?.value || "";
 
       // Handle photo file upload - convert to base64
       let photoUrl = null;
@@ -36,8 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const placeData = {
         dishName: document.querySelector("#dishName")?.value || "",
         locationCity: document.querySelector("#locationCity")?.value || "",
-  // backend expects a string for locationCountry; use the selected radio value
-  locationCountry: selectedCountry,
+        // backend expects a string for locationCountry; use the selected radio value
+        locationCountry: selectedCountry,
         placeType:
           document.querySelector("input[name='placeType']:checked")?.value ||
           "",
@@ -82,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         statusEl.classList.add("success");
 
         form.reset();
-        
+
         // Clear photo preview after form reset
         const previewWrapper = document.getElementById("photoPreviewWrapper");
         const previewImg = document.getElementById("photoPreview");
@@ -102,7 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Load existing places on page load (READ)
   // Initialize country dropdown widget (custom multi-select)
   initCountryDropdown();
 
@@ -112,6 +113,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize photo preview
   initPhotoPreview();
 
+  // NEW: set up restaurant search UI (Google Places)
+  initRestaurantSearch();
+
+  // Load existing places on page load (READ)
   loadPlaces();
 });
 
@@ -120,7 +125,7 @@ function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
+    reader.onerror = (error) => reject(error);
     reader.readAsDataURL(file);
   });
 }
@@ -157,14 +162,18 @@ function initCountryDropdown() {
   const btn = document.getElementById("countryDropdownBtn");
   const panel = document.getElementById("countryPanel");
   const searchInput = document.getElementById("countrySearch");
-  const radios = Array.from(panel.querySelectorAll("input[type=radio][name='locationCountry']"));
+  const radios = Array.from(
+    panel.querySelectorAll("input[type=radio][name='locationCountry']")
+  );
 
   function updateButtonLabel() {
     const checked = radios.find((r) => r.checked);
     if (!checked) {
       btn.textContent = "Choose country";
     } else {
-      const lbl = checked.parentElement ? checked.parentElement.textContent.trim() : checked.value;
+      const lbl = checked.parentElement
+        ? checked.parentElement.textContent.trim()
+        : checked.value;
       btn.textContent = lbl;
     }
   }
@@ -186,7 +195,6 @@ function initCountryDropdown() {
     dropdown.setAttribute("aria-expanded", "true");
     btn.setAttribute("aria-expanded", "true");
     panel.setAttribute("aria-hidden", "false");
-    // focus search input when dropdown opens
     if (searchInput) searchInput.focus();
   }
 
@@ -195,14 +203,13 @@ function initCountryDropdown() {
     btn.setAttribute("aria-expanded", "false");
     panel.setAttribute("aria-hidden", "true");
     btn.focus();
-    // clear search when closing
     if (searchInput) {
       searchInput.value = "";
-      filterCountries(); // reset filter
+      filterCountries();
     }
   }
 
-  btn.addEventListener("click", (e) => {
+  btn.addEventListener("click", () => {
     const expanded = dropdown.getAttribute("aria-expanded") === "true";
     if (expanded) closeDropdown();
     else openDropdown();
@@ -225,11 +232,12 @@ function initCountryDropdown() {
   });
 
   // Update label when radios change
-  radios.forEach((r) => r.addEventListener("change", () => {
-    updateButtonLabel();
-    // close dropdown after selection for faster UX
-    closeDropdown();
-  }));
+  radios.forEach((r) =>
+    r.addEventListener("change", () => {
+      updateButtonLabel();
+      closeDropdown();
+    })
+  );
 
   // Filter countries as user types
   if (searchInput) {
@@ -257,32 +265,32 @@ function initCustomDatePicker() {
 
   function formatDate(date) {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
   function formatDisplayDate(date) {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   }
 
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     // Update header
-    monthYearDisplay.textContent = currentDate.toLocaleDateString('en-US', { 
-      month: 'long', 
-      year: 'numeric' 
+    monthYearDisplay.textContent = currentDate.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
     });
 
     // Clear previous days
-    calendarDaysContainer.innerHTML = '';
+    calendarDaysContainer.innerHTML = "";
 
     // Get first day of month and number of days
     const firstDay = new Date(year, month, 1).getDay();
@@ -292,34 +300,32 @@ function initCustomDatePicker() {
     // Add previous month's trailing days
     for (let i = firstDay - 1; i >= 0; i--) {
       const day = daysInPrevMonth - i;
-      const dayEl = document.createElement('button');
-      dayEl.type = 'button';
-      dayEl.className = 'calendar-day other-month';
+      const dayEl = document.createElement("button");
+      dayEl.type = "button";
+      dayEl.className = "calendar-day other-month";
       dayEl.textContent = day;
       calendarDaysContainer.appendChild(dayEl);
     }
 
     // Add current month's days
     for (let day = 1; day <= daysInMonth; day++) {
-      const dayEl = document.createElement('button');
-      dayEl.type = 'button';
-      dayEl.className = 'calendar-day';
+      const dayEl = document.createElement("button");
+      dayEl.type = "button";
+      dayEl.className = "calendar-day";
       dayEl.textContent = day;
 
       const dateObj = new Date(year, month, day);
-      
-      // Check if today
+
       const today = new Date();
       if (dateObj.toDateString() === today.toDateString()) {
-        dayEl.classList.add('today');
+        dayEl.classList.add("today");
       }
 
-      // Check if selected
       if (selectedDate && dateObj.toDateString() === selectedDate.toDateString()) {
-        dayEl.classList.add('selected');
+        dayEl.classList.add("selected");
       }
 
-      dayEl.addEventListener('click', () => {
+      dayEl.addEventListener("click", () => {
         selectedDate = dateObj;
         hiddenInput.value = formatDate(dateObj);
         btn.textContent = formatDisplayDate(dateObj);
@@ -331,27 +337,28 @@ function initCustomDatePicker() {
 
     // Add next month's leading days to fill the grid
     const totalCells = calendarDaysContainer.children.length;
-    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    const remainingCells =
+      totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
     for (let day = 1; day <= remainingCells; day++) {
-      const dayEl = document.createElement('button');
-      dayEl.type = 'button';
-      dayEl.className = 'calendar-day other-month';
+      const dayEl = document.createElement("button");
+      dayEl.type = "button";
+      dayEl.className = "calendar-day other-month";
       dayEl.textContent = day;
       calendarDaysContainer.appendChild(dayEl);
     }
   }
 
   function openCalendar() {
-    panel.setAttribute('aria-hidden', 'false');
+    panel.setAttribute("aria-hidden", "false");
     renderCalendar();
   }
 
   function closeCalendar() {
-    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute("aria-hidden", "true");
   }
 
-  btn.addEventListener('click', () => {
-    const isOpen = panel.getAttribute('aria-hidden') === 'false';
+  btn.addEventListener("click", () => {
+    const isOpen = panel.getAttribute("aria-hidden") === "false";
     if (isOpen) {
       closeCalendar();
     } else {
@@ -359,27 +366,27 @@ function initCustomDatePicker() {
     }
   });
 
-  prevMonthBtn.addEventListener('click', () => {
+  prevMonthBtn.addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() - 1);
     renderCalendar();
   });
 
-  nextMonthBtn.addEventListener('click', () => {
+  nextMonthBtn.addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() + 1);
     renderCalendar();
   });
 
   // Close when clicking outside
-  document.addEventListener('click', (e) => {
+  document.addEventListener("click", (e) => {
     if (!picker.contains(e.target)) {
       closeCalendar();
     }
   });
 
   // Close on Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      const isOpen = panel.getAttribute('aria-hidden') === 'false';
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const isOpen = panel.getAttribute("aria-hidden") === "false";
       if (isOpen) closeCalendar();
     }
   });
@@ -425,7 +432,13 @@ function renderPlaces(places) {
 
       return `
         <div class="saved-place" data-id="${place._id}">
-          ${place.photoUrl ? `<img src="${place.photoUrl}" alt="${place.dishName || 'Dish photo'}" class="saved-place__photo">` : ''}
+          ${
+            place.photoUrl
+              ? `<img src="${place.photoUrl}" alt="${
+                  place.dishName || "Dish photo"
+                }" class="saved-place__photo">`
+              : ""
+          }
           <h3>${place.dishName || "Untitled dish"}</h3>
           <p><strong>Location:</strong> ${place.locationCity || "?"}, ${
         place.locationCountry || "?"
@@ -451,6 +464,165 @@ function renderPlaces(places) {
       `;
     })
     .join("");
+}
+
+// ========= Restaurant Search (Google Places via backend) =========
+function initRestaurantSearch() {
+  const searchQueryInput = document.querySelector("#searchQuery");
+  const searchLocationInput = document.querySelector("#searchLocation");
+  const searchBtn = document.querySelector("#searchBtn");
+  const searchResultsContainer = document.querySelector("#searchResults");
+
+  if (
+    !searchQueryInput ||
+    !searchLocationInput ||
+    !searchBtn ||
+    !searchResultsContainer
+  ) {
+    return;
+  }
+
+  searchBtn.addEventListener("click", async () => {
+    const query = searchQueryInput.value.trim();
+    const location = searchLocationInput.value.trim();
+
+    if (!query || !location) {
+      alert("Please enter both what you want to eat and a city.");
+      return;
+    }
+
+    searchBtn.disabled = true;
+    searchBtn.textContent = "Searching...";
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/restaurants/search?query=${encodeURIComponent(
+          query
+        )}&location=${encodeURIComponent(location)}`
+      );
+
+      if (!res.ok) {
+        throw new Error("Search failed");
+      }
+
+      const restaurants = await res.json();
+      renderRestaurantResults(restaurants);
+    } catch (err) {
+      console.error("Restaurant search error:", err);
+      searchResultsContainer.innerHTML =
+        "<p>Sorry, something went wrong while searching. Please try again.</p>";
+    } finally {
+      searchBtn.disabled = false;
+      searchBtn.textContent = "Search";
+    }
+  });
+}
+
+function renderRestaurantResults(restaurants) {
+  const container = document.querySelector("#searchResults");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!restaurants || restaurants.length === 0) {
+    container.innerHTML = "<p>No results found for this search.</p>";
+    return;
+  }
+
+  restaurants.forEach((r) => {
+    const card = document.createElement("article");
+    card.className = "place-card";
+
+    const ratingText =
+      typeof r.rating === "number" ? r.rating.toFixed(1) : "N/A";
+
+    card.innerHTML = `
+      <div class="place-main">
+        <div>
+          <h3>${r.name || "Unknown place"}</h3>
+          <p class="place-address">${r.address || ""}</p>
+        </div>
+        <div class="place-meta">
+          <span class="pill pill-small">★ ${ratingText}</span>
+        </div>
+      </div>
+      <button class="secondary-btn use-place-btn" type="button">
+        Use this place
+      </button>
+    `;
+
+    const useBtn = card.querySelector(".use-place-btn");
+    useBtn.addEventListener("click", () => fillFormFromPlace(r));
+
+    container.appendChild(card);
+  });
+}
+
+function fillFormFromPlace(r) {
+  const dishNameInput = document.querySelector("#dishName");
+  const cityInput = document.querySelector("#locationCity");
+  const countryRadios = document.querySelectorAll(
+    "input[name='locationCountry']"
+  );
+  const ratingInputs = document.querySelectorAll("input[name='rating']");
+  const placeTypeRadios = document.querySelectorAll("input[name='placeType']");
+  const countryDropdownBtn = document.querySelector("#countryDropdownBtn");
+
+  // Dish / restaurant name
+  if (dishNameInput) {
+    dishNameInput.value = r.name || "";
+  }
+
+  // Rough city guess: first part of address
+  if (cityInput && r.address) {
+    const parts = r.address.split(",");
+    cityInput.value = parts[0].trim();
+  }
+
+  // Country guess: last part of address
+  if (countryRadios.length && r.address) {
+    const countryGuess = r.address
+      .split(",")
+      .slice(-1)[0]
+      .trim()
+      .toLowerCase();
+
+    let matchedRadio = null;
+    countryRadios.forEach((radio) => {
+      if (radio.value.toLowerCase() === countryGuess) {
+        radio.checked = true;
+        matchedRadio = radio;
+      } else {
+        radio.checked = false;
+      }
+    });
+
+    if (matchedRadio && countryDropdownBtn) {
+      const lbl = matchedRadio.parentElement
+        ? matchedRadio.parentElement.textContent.trim()
+        : matchedRadio.value;
+      countryDropdownBtn.textContent = lbl;
+    }
+  }
+
+  // Rating from Google → round to nearest star
+  if (ratingInputs.length && typeof r.rating === "number") {
+    const rounded = Math.round(r.rating);
+    ratingInputs.forEach((input) => {
+      input.checked = Number(input.value) === rounded;
+    });
+  }
+
+  // Default place type to Restaurant
+  placeTypeRadios.forEach((radio) => {
+    radio.checked = radio.value === "Restaurant";
+  });
+
+  // Scroll to main form
+  const formCard = document.querySelector(".form-card");
+  if (formCard) {
+    formCard.scrollIntoView({ behavior: "smooth" });
+  }
 }
 
 // Global click handler for Update + Delete
@@ -496,7 +668,7 @@ document.addEventListener("click", async (event) => {
       const res = await fetch(`${API_BASE}/places/${id}`);
       if (!res.ok) throw new Error("Failed to fetch place data");
       const place = await res.json();
-      
+
       openEditModal(place);
     } catch (err) {
       console.error(err);
@@ -510,19 +682,21 @@ function openEditModal(place) {
   const modal = document.getElementById("editModal");
   if (!modal) return;
 
-  // Populate form fields
   document.getElementById("editId").value = place._id;
   document.getElementById("editDishName").value = place.dishName || "";
-  document.getElementById("editLocationCity").value = place.locationCity || "";
-  document.getElementById("editLocationCountry").value = place.locationCountry || "";
+  document.getElementById("editLocationCity").value =
+    place.locationCity || "";
+  document.getElementById("editLocationCountry").value =
+    place.locationCountry || "";
   document.getElementById("editPlaceType").value = place.placeType || "";
   document.getElementById("editRating").value = place.rating || "";
   document.getElementById("editPriceLevel").value = place.priceLevel || "";
-  document.getElementById("editVisitDate").value = place.visitDate ? place.visitDate.split('T')[0] : "";
+  document.getElementById("editVisitDate").value = place.visitDate
+    ? place.visitDate.split("T")[0]
+    : "";
   document.getElementById("editNotes").value = place.notes || "";
   document.getElementById("editPhotoUrl").value = place.photoUrl || "";
 
-  // Show modal
   modal.hidden = false;
 }
 
@@ -549,9 +723,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const updatedData = {
         dishName: document.getElementById("editDishName").value,
         locationCity: document.getElementById("editLocationCity").value,
-        locationCountry: document.getElementById("editLocationCountry").value,
+        locationCountry:
+          document.getElementById("editLocationCountry").value,
         placeType: document.getElementById("editPlaceType").value,
-        rating: document.getElementById("editRating").value ? Number(document.getElementById("editRating").value) : null,
+        rating: document.getElementById("editRating").value
+          ? Number(document.getElementById("editRating").value)
+          : null,
         priceLevel: document.getElementById("editPriceLevel").value,
         visitDate: document.getElementById("editVisitDate").value,
         notes: document.getElementById("editNotes").value,
@@ -579,7 +756,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Close modal when clicking outside
   const modal = document.getElementById("editModal");
   if (modal) {
     modal.addEventListener("click", (e) => {

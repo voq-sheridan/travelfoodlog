@@ -19,6 +19,38 @@
       <p class="brand-tagline">A gentle place to remember every dish that stayed with you.</p>
     </header>
 
+    <!-- GOOGLE RESTAURANT SEARCH -->
+    <section class="card search-card">
+      <h2 class="section-title">Find a Restaurant</h2>
+      <p class="section-subtitle">
+        Search using Google Places and auto-fill the form below.
+      </p>
+
+      <!-- Search Inputs -->
+      <div class="search-row">
+        <input
+          id="searchQuery"
+          type="text"
+          placeholder="Dish or restaurant (e.g., ramen)"
+          aria-label="Search query"
+        />
+        <input
+          id="searchLocation"
+          type="text"
+          placeholder="City (e.g., Toronto)"
+          aria-label="Search location"
+        />
+        <button id="searchBtn" type="button" class="primary-btn">
+          Search
+        </button>
+      </div>
+
+      <!-- Results List -->
+      <div id="searchResults" class="places-list">
+        <!-- Results will appear here -->
+      </div>
+    </section>
+
     <!-- FORM CARD -->
     <section class="card form-card">
       <h3 class="section-title">Add a new food memory</h3>
