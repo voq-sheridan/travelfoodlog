@@ -1,3 +1,11 @@
+/* =========================================================
+   FoodieTrail — script.js (FULL CORRECTED)
+   - Works with your CURRENT HTML (searchQuery, searchLocation, searchBtn)
+   - Restaurant search + "Use this place" auto-fills the form
+   - CRUD: Create / Read / Update / Delete
+   - Country dropdown + custom date picker + photo preview
+   ========================================================= */
+
 const API_BASE = "https://travelfoodlog-backend.onrender.com";
 
 // Store the selected restaurant from search (so we can save extra info if you want)
@@ -10,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPhotoPreview();
   initEditModal();
 
-  // Restaurant search init (new)
+  // Restaurant search init (matches your HTML)
   initRestaurantSearch();
 
   // Form submit (CREATE)
@@ -19,37 +27,33 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load existing places on page load (READ)
   loadPlaces();
 
-  // Global click handler for Delete/Edit (and any future actions)
+  // Global click handler for Delete/Edit/Use Place
   document.addEventListener("click", handleGlobalClicks);
 });
 
 /* =========================
-   Restaurant Search (NEW)
+   Restaurant Search
    ========================= */
 
 function initRestaurantSearch() {
-  const searchForm = document.getElementById("restaurantSearchForm");
   const queryInput = document.getElementById("searchQuery");
   const locationInput = document.getElementById("searchLocation");
-  const statusEl = document.getElementById("searchStatus");
   const resultsEl = document.getElementById("searchResults");
+  const searchBtn = document.getElementById("searchBtn");
 
-  // If you haven't added the search UI yet, don't crash.
-  if (!searchForm || !queryInput || !locationInput || !resultsEl) return;
+  // If search UI isn't present, don't crash.
+  if (!queryInput || !locationInput || !resultsEl || !searchBtn) return;
 
-  searchForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
+  async function runSearch() {
     const query = queryInput.value.trim();
     const location = locationInput.value.trim();
 
     if (!query && !location) {
-      if (statusEl) statusEl.textContent = "Type a dish/restaurant or a location.";
+      resultsEl.innerHTML = `<p>Please type a dish/restaurant or a city.</p>`;
       return;
     }
 
     resultsEl.innerHTML = `<p>Searching...</p>`;
-    if (statusEl) statusEl.textContent = "";
 
     try {
       const url = new URL(`${API_BASE}/restaurants/search`);
@@ -67,8 +71,20 @@ function initRestaurantSearch() {
     } catch (err) {
       console.error(err);
       resultsEl.innerHTML = `<p>Could not load results. Try again.</p>`;
-      if (statusEl) statusEl.textContent = `Error: ${err.message}`;
     }
+  }
+
+  // Click Search
+  searchBtn.addEventListener("click", runSearch);
+
+  // Press Enter in either input
+  [queryInput, locationInput].forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch();
+      }
+    });
   });
 }
 
@@ -78,13 +94,15 @@ function renderRestaurantResults(restaurants, resultsEl) {
     return;
   }
 
+  // Save list on the element so we can retrieve by index on click
+  resultsEl._restaurants = restaurants;
+
   resultsEl.innerHTML = restaurants
     .map((r, idx) => {
       const name = escapeHtml(r.name || "Unnamed place");
       const address = escapeHtml(r.address || "");
       const rating = r.rating != null ? Number(r.rating).toFixed(1) : "—";
 
-      // Store the full object in a data attribute (lightweight via index + in-memory list)
       return `
         <div class="restaurant-result" data-index="${idx}">
           <div class="restaurant-result__meta">
@@ -92,16 +110,19 @@ function renderRestaurantResults(restaurants, resultsEl) {
             ${address ? `<p class="restaurant-result__address">${address}</p>` : ""}
             <p class="restaurant-result__rating"><strong>Rating:</strong> ${rating}</p>
           </div>
-          <button type="button" class="use-place-btn" data-action="use-place" data-index="${idx}">
+
+          <button
+            type="button"
+            class="primary-btn use-place-btn"
+            data-action="use-place"
+            data-index="${idx}"
+          >
             Use this place
           </button>
         </div>
       `;
     })
     .join("");
-
-  // Save list on the element so we can retrieve by index on click
-  resultsEl._restaurants = restaurants;
 }
 
 function applyRestaurantToForm(restaurant) {
@@ -112,7 +133,6 @@ function applyRestaurantToForm(restaurant) {
   if (dishNameInput) dishNameInput.value = restaurant.name || "";
 
   // Try to guess city/country from formatted address
-  // (Not perfect, but good enough for autofill)
   const { city, country } = parseCityCountryFromAddress(restaurant.address || "");
 
   const cityInput = document.getElementById("locationCity");
@@ -125,6 +145,7 @@ function applyRestaurantToForm(restaurant) {
     );
     if (countryRadio) {
       countryRadio.checked = true;
+
       // Update dropdown label
       const dropdownBtn = document.getElementById("countryDropdownBtn");
       if (dropdownBtn) {
@@ -134,24 +155,24 @@ function applyRestaurantToForm(restaurant) {
     }
   }
 
-  // Optional: put address into notes (you can remove this if you don't want it)
+  // Optional: put address into notes if notes is empty
   const notes = document.getElementById("notes");
   if (notes && restaurant.address) {
     const existing = notes.value.trim();
     if (!existing) notes.value = `Address: ${restaurant.address}`;
   }
 
-  // Small UX: scroll to form
+  // Scroll to form
   const form = document.getElementById("dishForm");
   if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function parseCityCountryFromAddress(address) {
   // Example: "421 College St, Toronto, ON M5T 1T1, Canada"
-  // We’ll assume the last chunk is country, and the second last chunk often contains city/province.
   const parts = address.split(",").map((s) => s.trim()).filter(Boolean);
   const country = parts.length >= 1 ? parts[parts.length - 1] : "";
-  const city = parts.length >= 2 ? parts[parts.length - 2].split(" ")[0] : ""; // “Toronto” from “Toronto ON...”
+  const cityChunk = parts.length >= 2 ? parts[parts.length - 2] : "";
+  const city = cityChunk ? cityChunk.split(" ")[0] : "";
   return { city, country };
 }
 
@@ -203,7 +224,7 @@ function initCreateForm() {
       notes: document.querySelector("#notes")?.value || "",
       photoUrl,
 
-      // Optional: save Google info too (nice for Project 3)
+      // Optional: save Google info too
       externalId: selectedRestaurant?.externalId || "",
       address: selectedRestaurant?.address || "",
       lat: selectedRestaurant?.lat ?? null,
@@ -240,7 +261,11 @@ function initCreateForm() {
 
       // Reset country dropdown label
       const dropdownBtn = document.getElementById("countryDropdownBtn");
-      if (dropdownBtn) dropdownBtn.textContent = "Choose country";
+      if (dropdownBtn) dropdownBtn.textContent = "Choose country(s)";
+
+      // Reset date picker label
+      const dateBtn = document.getElementById("datePickerBtn");
+      if (dateBtn) dateBtn.textContent = "Choose date";
 
       loadPlaces();
     } catch (err) {
@@ -294,7 +319,7 @@ function initPhotoPreview() {
 }
 
 /* =========================
-   Country dropdown (your existing widget)
+   Country dropdown
    ========================= */
 
 function initCountryDropdown() {
@@ -304,13 +329,11 @@ function initCountryDropdown() {
   const btn = document.getElementById("countryDropdownBtn");
   const panel = document.getElementById("countryPanel");
   const searchInput = document.getElementById("countrySearch");
-  const radios = Array.from(
-    panel.querySelectorAll("input[type=radio][name='locationCountry']")
-  );
+  const radios = Array.from(panel.querySelectorAll("input[type=radio][name='locationCountry']"));
 
   function updateButtonLabel() {
     const checked = radios.find((r) => r.checked);
-    if (!checked) btn.textContent = "Choose country";
+    if (!checked) btn.textContent = "Choose country(s)";
     else btn.textContent = checked.parentElement?.textContent?.trim() || checked.value;
   }
 
@@ -371,7 +394,7 @@ function initCountryDropdown() {
 }
 
 /* =========================
-   Custom date picker (your existing widget)
+   Custom date picker
    ========================= */
 
 function initCustomDatePicker() {
@@ -537,17 +560,25 @@ function renderPlaces(places) {
         <div class="saved-place" data-id="${place._id}">
           ${
             place.photoUrl
-              ? `<img src="${place.photoUrl}" alt="${escapeHtml(place.dishName || "Dish photo")}" class="saved-place__photo">`
+              ? `<img src="${place.photoUrl}" alt="${escapeHtml(
+                  place.dishName || "Dish photo"
+                )}" class="saved-place__photo">`
               : ""
           }
           <h3>${escapeHtml(place.dishName || "Untitled dish")}</h3>
-          <p><strong>Location:</strong> ${escapeHtml(place.locationCity || "?")}, ${escapeHtml(place.locationCountry || "?")}</p>
+          <p><strong>Location:</strong> ${escapeHtml(place.locationCity || "?")}, ${escapeHtml(
+        place.locationCountry || "?"
+      )}</p>
           <p><strong>Type:</strong> ${escapeHtml(place.placeType || "Not specified")}</p>
-          <p><strong>Rating:</strong> ${place.rating != null ? `${place.rating}/5` : "No rating"}</p>
+          <p><strong>Rating:</strong> ${
+            place.rating != null ? `${place.rating}/5` : "No rating"
+          }</p>
           <p><strong>Price level:</strong> ${escapeHtml(place.priceLevel || "Not specified")}</p>
           <p><strong>Tags:</strong> ${escapeHtml(tagsText || "None")}</p>
           <p><strong>Visited on:</strong> ${escapeHtml(visitDateText)}</p>
-          <p><strong>Notes:</strong> <span class="notes-text">${escapeHtml(place.notes || "No notes yet.")}</span></p>
+          <p><strong>Notes:</strong> <span class="notes-text">${escapeHtml(
+            place.notes || "No notes yet."
+          )}</span></p>
 
           <div class="saved-place__actions">
             <button class="edit-btn" type="button">Edit</button>
@@ -680,9 +711,7 @@ function openEditModal(place) {
   document.getElementById("editPlaceType").value = place.placeType || "";
   document.getElementById("editRating").value = place.rating || "";
   document.getElementById("editPriceLevel").value = place.priceLevel || "";
-  document.getElementById("editVisitDate").value = place.visitDate
-    ? place.visitDate.split("T")[0]
-    : "";
+  document.getElementById("editVisitDate").value = place.visitDate ? place.visitDate.split("T")[0] : "";
   document.getElementById("editNotes").value = place.notes || "";
   document.getElementById("editPhotoUrl").value = place.photoUrl || "";
 
@@ -695,7 +724,7 @@ function closeEditModal() {
 }
 
 /* =========================
-   Small utilities
+   Utilities
    ========================= */
 
 function escapeHtml(str) {
