@@ -532,14 +532,12 @@ textarea {
 }
 
 /* Star rating */
-
 .star-rating {
   display: flex;
-  flex-direction: row-reverse; /* needed for the CSS trick */
-  justify-content: flex-end; /* align stars to the left (reversed due to row-reverse) */
-  gap: 1rem;
-  font-size: 15rem; /* extra large stars */
-  margin-top: 0.5rem;
+  flex-direction: row-reverse; /* keeps hover logic correct */
+  justify-content: flex-start; /* align left */
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .star-rating input {
@@ -547,22 +545,26 @@ textarea {
 }
 
 .star-rating label {
+  font-size: 3rem;        /* BIG stars */
+  line-height: 1;
   cursor: pointer;
-  color: #e0e4f0;
-  transition: color 0.15s ease, transform 0.1s ease;
+  color: #d1d5db;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
-/* When a radio is checked, colour that star and all previous ones */
-.star-rating input:checked ~ label {
-  color: #facc15;
-}
-
-/* Hover states */
 .star-rating label:hover,
 .star-rating label:hover ~ label {
-  color: #fde68a;
-  transform: translateY(-2px);
+  color: #fbbf24;
 }
+
+.star-rating input:checked ~ label {
+  color: #fbbf24;
+}
+
+.star-rating label:active {
+  transform: scale(1.1);
+}
+
 
 /* Photo preview */
 
