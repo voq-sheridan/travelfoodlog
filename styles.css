@@ -900,3 +900,12 @@ textarea::placeholder {
     font-size: 1.6rem;
   }
 }
+
+/* Thin line between each restaurant result */
+#searchResults .restaurant-result {
+  padding: 1rem 0;
+}
+
+#searchResults .restaurant-result:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
