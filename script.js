@@ -17,14 +17,15 @@ document.addEventListener("DOMContentLoaded", () => {
   initCustomDatePicker();
   initPhotoPreview();
   initEditModal();
+  initLightbox(); // 👈 ADD THIS
 
   initRestaurantSearch();
   initCreateForm();
-
   loadPlaces();
 
   document.addEventListener("click", handleGlobalClicks);
 });
+
 
 /* =========================
    Restaurant Search
@@ -563,9 +564,13 @@ function renderPlaces(places) {
                 .slice(0, 3)
                 .map(
                   (img) =>
-                    `<img src="${img}" alt="${escapeHtml(
-                      place.dishName || "Dish photo"
-                    )}" class="saved-place__photo">`
+                    `<img
+                      src="${img}"
+                      data-action="open-photo"
+                      data-src="${img}"
+                      alt="${escapeHtml(place.dishName || "Dish photo")}"
+                      class="saved-place__photo"
+                    >`
                 )
                 .join("")}
             </div>`
@@ -605,6 +610,22 @@ function renderPlaces(places) {
    ========================= */
 
 async function handleGlobalClicks(event) {
+  // ✅ OPEN photo in lightbox
+  const openPhoto = event.target.closest("[data-action='open-photo']");
+  if (openPhoto) {
+    // works if you click the img itself OR a wrapper element
+    const src = openPhoto.dataset.src || openPhoto.getAttribute("src");
+    if (src && typeof openLightbox === "function") openLightbox(src);
+    return;
+  }
+
+  // ✅ CLOSE lightbox (click X or backdrop)
+  const closeLightboxBtn = event.target.closest("[data-action='close-lightbox']");
+  if (closeLightboxBtn) {
+    if (typeof closeLightbox === "function") closeLightbox();
+    return;
+  }
+
   const deleteBtn = event.target.closest(".delete-btn");
   const editBtn = event.target.closest(".edit-btn");
   const usePlaceBtn = event.target.closest("[data-action='use-place']");
@@ -655,6 +676,7 @@ async function handleGlobalClicks(event) {
     }
   }
 }
+
 
 /* =========================
    Edit modal (photos not edited here)
@@ -763,4 +785,23 @@ function mapGooglePriceLevel(priceLevel) {
     default:
       return "—";
   }
+}
+
+function initLightbox() {
+  const lightbox = document.getElementById("imageLightbox");
+  const img = document.getElementById("lightboxImg");
+
+  if (!lightbox || !img) return;
+
+  window.openLightbox = (src) => {
+    img.src = src;
+    lightbox.hidden = false;
+    document.body.style.overflow = "hidden";
+  };
+
+  window.closeLightbox = () => {
+    lightbox.hidden = true;
+    img.src = "";
+    document.body.style.overflow = "";
+  };
 }

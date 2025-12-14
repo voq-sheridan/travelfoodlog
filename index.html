@@ -10,6 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@400;700&display=swap" rel="stylesheet">
   <script src="script.js" defer></script>
 </head>
+
+<!-- IMAGE LIGHTBOX -->
+<div id="imageLightbox" class="image-lightbox" hidden>
+  <div class="image-lightbox__backdrop" data-action="close-lightbox"></div>
+  <img id="lightboxImg" class="image-lightbox__img" alt="Enlarged photo">
+  <button class="image-lightbox__close" data-action="close-lightbox">×</button>
+</div>
+
+
 <body>
   <main class="page">
 
@@ -281,36 +290,33 @@
 
         <!-- D. Notes + Photo -->
         <fieldset>
-          <legend>Notes & Photo</legend>
+  <legend>Notes & Photo</legend>
 
-          <div class="field">
-            <label for="notes">Notes</label>
-            <textarea id="notes" name="notes" maxlength="500" placeholder="What stood out? Flavour, vibe, company..." aria-describedby="notesCount"></textarea>
-            <div class="char-counter"><span id="notesCount">0</span>/500</div>
-          </div>
+  <div class="field">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" maxlength="500"
+      placeholder="What stood out? Flavour, vibe, company..."
+      aria-describedby="notesCount"></textarea>
+    <div class="char-counter"><span id="notesCount">0</span>/500</div>
+  </div>
 
-          <div class="field">
-            <label for="photoUrl">Add a photo (optional)</label>
-            <input
-  id="photoFiles"
-  name="photoFiles"
-  type="file"
-  accept="image/*"
-  multiple
->
-<p class="field-hint">You can upload up to 3 images</p>
+  <div class="field">
+    <label for="photoUrl">Add photos (optional)</label>
+    <input
+      id="photoUrl"
+      name="photoUrl"
+      type="file"
+      accept="image/*"
+      multiple
+    >
+    <p class="field-hint">You can upload up to 3 images</p>
 
-<div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
-  <p class="field-hint">Preview</p>
-  <div id="photoPreviewList" class="photo-preview-grid"></div>
-</div>
-
-            <div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
-              <p class="field-hint">Preview</p>
-              <img id="photoPreview" alt="Selected dish photo preview">
-            </div>
-          </div>
-        </fieldset>
+    <div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
+      <p class="field-hint">Preview</p>
+      <div id="photoPreviewList" class="photo-preview-grid"></div>
+    </div>
+  </div>
+</fieldset>
 
         <div class="form-footer">
           <button type="submit" class="primary-btn">Save</button>
