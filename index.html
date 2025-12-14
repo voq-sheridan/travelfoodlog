@@ -291,7 +291,20 @@
 
           <div class="field">
             <label for="photoUrl">Add a photo (optional)</label>
-            <input id="photoUrl" name="photoUrl" type="file" accept="image/*" aria-label="Upload a photo of the dish (optional)">
+            <input
+  id="photoFiles"
+  name="photoFiles"
+  type="file"
+  accept="image/*"
+  multiple
+>
+<p class="field-hint">You can upload up to 3 images</p>
+
+<div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
+  <p class="field-hint">Preview</p>
+  <div id="photoPreviewList" class="photo-preview-grid"></div>
+</div>
+
             <div id="photoPreviewWrapper" class="photo-preview-wrapper" hidden>
               <p class="field-hint">Preview</p>
               <img id="photoPreview" alt="Selected dish photo preview">

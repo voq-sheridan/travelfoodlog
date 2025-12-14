@@ -15,7 +15,10 @@ const placeSchema = new mongoose.Schema(
     visitDate: { type: Date },
 
     notes: { type: String },
-    photoUrl: { type: String },
+    photos: {
+    type: [String], // base64 images
+    default: [],
+    },
 
     visited: { type: Boolean, default: true },
   },

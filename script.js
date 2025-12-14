@@ -1,33 +1,28 @@
 /* =========================================================
    FoodieTrail — script.js (FULL CORRECTED)
-   - Works with your CURRENT HTML (searchQuery, searchLocation, searchBtn)
-   - Restaurant search + "Use this place" auto-fills the form
+   - Matches your CURRENT HTML (searchQuery, searchLocation, searchBtn, photoUrl)
+   - Restaurant search + "Use this place" auto-fills the form (incl. priceLevel)
    - CRUD: Create / Read / Update / Delete
-   - Country dropdown + custom date picker + photo preview
+   - Country dropdown + custom date picker
+   - Upload up to 3 photos (base64) + display in Saved memories
    ========================================================= */
 
 const API_BASE = "https://travelfoodlog-backend.onrender.com";
 
-// Store the selected restaurant from search (so we can save extra info if you want)
+// Store the selected restaurant from search
 let selectedRestaurant = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Core UI init
   initCountryDropdown();
   initCustomDatePicker();
   initPhotoPreview();
   initEditModal();
 
-  // Restaurant search init (matches your HTML)
   initRestaurantSearch();
-
-  // Form submit (CREATE)
   initCreateForm();
 
-  // Load existing places on page load (READ)
   loadPlaces();
 
-  // Global click handler for Delete/Edit/Use Place
   document.addEventListener("click", handleGlobalClicks);
 });
 
@@ -41,7 +36,6 @@ function initRestaurantSearch() {
   const resultsEl = document.getElementById("searchResults");
   const searchBtn = document.getElementById("searchBtn");
 
-  // If search UI isn't present, don't crash.
   if (!queryInput || !locationInput || !resultsEl || !searchBtn) return;
 
   async function runSearch() {
@@ -74,10 +68,8 @@ function initRestaurantSearch() {
     }
   }
 
-  // Click Search
   searchBtn.addEventListener("click", runSearch);
 
-  // Press Enter in either input
   [queryInput, locationInput].forEach((el) => {
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -94,7 +86,6 @@ function renderRestaurantResults(restaurants, resultsEl) {
     return;
   }
 
-  // Save list on the element so we can retrieve by index on click
   resultsEl._restaurants = restaurants;
 
   resultsEl.innerHTML = restaurants
@@ -130,26 +121,24 @@ function renderRestaurantResults(restaurants, resultsEl) {
 function applyRestaurantToForm(restaurant) {
   selectedRestaurant = restaurant;
 
-  // Fill dish/restaurant name
   const dishNameInput = document.getElementById("dishName");
   if (dishNameInput) dishNameInput.value = restaurant.name || "";
 
-  // Try to guess city/country from formatted address
   const { city, country } = parseCityCountryFromAddress(restaurant.address || "");
 
-  // Auto-select price level radio if available
-if (restaurant.priceLevel) {
-  const priceSymbol = mapGooglePriceLevel(restaurant.priceLevel);
-  const priceRadio = document.querySelector(
-    `input[name="priceLevel"][value="${priceSymbol}"]`
-  );
-  if (priceRadio) priceRadio.checked = true;
-}
+  // Auto-select price level
+  if (restaurant.priceLevel) {
+    const priceSymbol = mapGooglePriceLevel(restaurant.priceLevel);
+    const priceRadio = document.querySelector(
+      `input[name="priceLevel"][value="${priceSymbol}"]`
+    );
+    if (priceRadio) priceRadio.checked = true;
+  }
 
   const cityInput = document.getElementById("locationCity");
   if (cityInput && city) cityInput.value = city;
 
-  // Select the country radio if it exists in your list
+  // Select country radio
   if (country) {
     const countryRadio = document.querySelector(
       `input[type="radio"][name="locationCountry"][value="${cssEscape(country)}"]`
@@ -157,7 +146,6 @@ if (restaurant.priceLevel) {
     if (countryRadio) {
       countryRadio.checked = true;
 
-      // Update dropdown label
       const dropdownBtn = document.getElementById("countryDropdownBtn");
       if (dropdownBtn) {
         const lbl = countryRadio.parentElement?.textContent?.trim() || country;
@@ -166,20 +154,17 @@ if (restaurant.priceLevel) {
     }
   }
 
-  // Optional: put address into notes if notes is empty
   const notes = document.getElementById("notes");
   if (notes && restaurant.address) {
     const existing = notes.value.trim();
     if (!existing) notes.value = `Address: ${restaurant.address}`;
   }
 
-  // Scroll to form
   const form = document.getElementById("dishForm");
   if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function parseCityCountryFromAddress(address) {
-  // Example: "421 College St, Toronto, ON M5T 1T1, Canada"
   const parts = address.split(",").map((s) => s.trim()).filter(Boolean);
   const country = parts.length >= 1 ? parts[parts.length - 1] : "";
   const cityChunk = parts.length >= 2 ? parts[parts.length - 2] : "";
@@ -210,14 +195,15 @@ function initCreateForm() {
     const selectedCountry =
       document.querySelector("input[name='locationCountry']:checked")?.value || "";
 
-    // Photo file -> base64
-    let photoUrl = null;
-    const photoInput = document.querySelector("#photoUrl");
-    if (photoInput?.files?.[0]) {
+    // Upload up to 3 photos -> base64 array
+    let photos = [];
+    const photoInput = document.querySelector("#photoUrl"); // matches your HTML
+    if (photoInput?.files?.length) {
+      const files = Array.from(photoInput.files).slice(0, 3);
       try {
-        photoUrl = await fileToBase64(photoInput.files[0]);
+        photos = await Promise.all(files.map(fileToBase64));
       } catch (err) {
-        console.error("Error converting photo:", err);
+        console.error("Error converting photos:", err);
       }
     }
 
@@ -233,9 +219,9 @@ function initCreateForm() {
       ).map((c) => c.value),
       visitDate: document.querySelector("#visitDate")?.value || "",
       notes: document.querySelector("#notes")?.value || "",
-      photoUrl,
+      photos, // ✅ new array field
 
-      // Optional: save Google info too
+      // optional google fields
       externalId: selectedRestaurant?.externalId || "",
       address: selectedRestaurant?.address || "",
       lat: selectedRestaurant?.lat ?? null,
@@ -262,7 +248,7 @@ function initCreateForm() {
       form.reset();
       selectedRestaurant = null;
 
-      // Clear photo preview
+      // Reset photo preview (we show only first preview image in current HTML)
       const previewWrapper = document.getElementById("photoPreviewWrapper");
       const previewImg = document.getElementById("photoPreview");
       if (previewWrapper && previewImg) {
@@ -302,27 +288,30 @@ function fileToBase64(file) {
 }
 
 /* =========================
-   Photo preview
+   Photo preview (matches current HTML)
+   - shows first selected image as preview
    ========================= */
 
 function initPhotoPreview() {
-  const photoInput = document.getElementById("photoUrl");
-  const previewWrapper = document.getElementById("photoPreviewWrapper");
+  const input = document.getElementById("photoUrl"); // ✅ matches HTML
+  const wrapper = document.getElementById("photoPreviewWrapper");
   const previewImg = document.getElementById("photoPreview");
-  if (!photoInput || !previewWrapper || !previewImg) return;
 
-  photoInput.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      previewWrapper.hidden = true;
+  if (!input || !wrapper || !previewImg) return;
+
+  input.addEventListener("change", async () => {
+    const files = Array.from(input.files).slice(0, 3);
+
+    if (!files.length) {
+      wrapper.hidden = true;
       previewImg.src = "";
       return;
     }
 
     try {
-      const base64 = await fileToBase64(file);
+      const base64 = await fileToBase64(files[0]); // show first image only
       previewImg.src = base64;
-      previewWrapper.hidden = false;
+      wrapper.hidden = false;
     } catch (err) {
       console.error("Error previewing photo:", err);
     }
@@ -567,15 +556,25 @@ function renderPlaces(places) {
 
       const tagsText = Array.isArray(place.KeywordTags) ? place.KeywordTags.join(", ") : "";
 
+      const photosHtml =
+        Array.isArray(place.photos) && place.photos.length
+          ? `<div class="saved-place__photos">
+              ${place.photos
+                .slice(0, 3)
+                .map(
+                  (img) =>
+                    `<img src="${img}" alt="${escapeHtml(
+                      place.dishName || "Dish photo"
+                    )}" class="saved-place__photo">`
+                )
+                .join("")}
+            </div>`
+          : "";
+
       return `
         <div class="saved-place" data-id="${place._id}">
-          ${
-            place.photoUrl
-              ? `<img src="${place.photoUrl}" alt="${escapeHtml(
-                  place.dishName || "Dish photo"
-                )}" class="saved-place__photo">`
-              : ""
-          }
+          ${photosHtml}
+
           <h3>${escapeHtml(place.dishName || "Untitled dish")}</h3>
           <p><strong>Location:</strong> ${escapeHtml(place.locationCity || "?")}, ${escapeHtml(
         place.locationCountry || "?"
@@ -610,7 +609,7 @@ async function handleGlobalClicks(event) {
   const editBtn = event.target.closest(".edit-btn");
   const usePlaceBtn = event.target.closest("[data-action='use-place']");
 
-  // Use this place (restaurant search)
+  // Use this place
   if (usePlaceBtn) {
     const resultsEl = document.getElementById("searchResults");
     const restaurants = resultsEl?._restaurants || [];
@@ -658,7 +657,7 @@ async function handleGlobalClicks(event) {
 }
 
 /* =========================
-   Edit modal
+   Edit modal (photos not edited here)
    ========================= */
 
 function initEditModal() {
@@ -678,6 +677,7 @@ function initEditModal() {
     e.preventDefault();
 
     const id = document.getElementById("editId").value;
+
     const updatedData = {
       dishName: document.getElementById("editDishName").value,
       locationCity: document.getElementById("editLocationCity").value,
@@ -689,7 +689,7 @@ function initEditModal() {
       priceLevel: document.getElementById("editPriceLevel").value,
       visitDate: document.getElementById("editVisitDate").value,
       notes: document.getElementById("editNotes").value,
-      photoUrl: document.getElementById("editPhotoUrl").value,
+      // ✅ photos not handled in edit modal (keeps it simple + avoids schema mismatch)
     };
 
     try {
@@ -724,7 +724,6 @@ function openEditModal(place) {
   document.getElementById("editPriceLevel").value = place.priceLevel || "";
   document.getElementById("editVisitDate").value = place.visitDate ? place.visitDate.split("T")[0] : "";
   document.getElementById("editNotes").value = place.notes || "";
-  document.getElementById("editPhotoUrl").value = place.photoUrl || "";
 
   modal.hidden = false;
 }
@@ -747,7 +746,6 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-// For querySelector value matching
 function cssEscape(value) {
   return CSS?.escape ? CSS.escape(value) : String(value).replace(/"/g, '\\"');
 }
